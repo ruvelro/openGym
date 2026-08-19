@@ -22,9 +22,9 @@ services:
     restart: "no"
 
   # Passkey auth + per-user data (Node, no framework).
-  # image: prebuilt (docker compose pull). build: from source (docker compose up --build).
+  # Built from source on first `docker compose up` — there are no prebuilt images
+  # to pull for this fork yet (see .github/ workflows if you publish your own).
   api:
-    image: ghcr.io/duartesantos8/opengym-api:latest
     build: ./api
     restart: unless-stopped
     env_file: .env
@@ -37,7 +37,6 @@ services:
   # Builds the React frontend (multi-stage) and serves it, proxying /api → api
   # and the exercise media from the shared volume. Single origin for passkeys.
   web:
-    image: ghcr.io/duartesantos8/opengym-web:latest
     build:
       context: .
       dockerfile: web/Dockerfile

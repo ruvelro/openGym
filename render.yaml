@@ -2,5 +2,5 @@ services:
   - type: web
     name: opengym
     env: docker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./web/Dockerfile
     dockerContext: .
