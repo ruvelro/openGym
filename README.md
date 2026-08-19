@@ -39,7 +39,7 @@ No account on someone else's server, no subscription, no ads. Just `docker compo
 
 <div align="center">
 
-### [🌐 opengym.duarte-santos.ch](https://opengym.duarte-santos.ch) · [▶ Try the live demo](https://ruvelro.github.io/openGym/)
+### [🌐 ruvelro.github.io/openGym](https://ruvelro.github.io/openGym/) · [▶ Try the live demo](https://ruvelro.github.io/openGym/demo/)
 
 No signup, nothing to install — it runs entirely in your browser on example data.<br>
 <sub>There's no server behind the demo, so passkey sign-in, sync across devices and the
@@ -161,7 +161,7 @@ Push notification keys are generated on first run and saved to `./data/vapid.jso
 
 Rough, community-driven — ideas and PRs welcome:
 
-- [x] Standalone mobile app — Android APK to sideload ([download](https://opengym.duarte-santos.ch)); on iOS as a self-hosted PWA (no store listings planned)
+- [ ] Standalone mobile app — the Capacitor project is here and [builds from source](docs/MOBILE.md), but this fork publishes no signed APK yet; on iOS as a self-hosted PWA (no store listings planned)
 - [x] Automatic progression programs (linear, Greyskull LP, double progression) with stalls and deloads
 - [x] Estimated 1RM per exercise
 - [ ] Percentage / training-max programming (5/3/1-style) on top of the progression engine
