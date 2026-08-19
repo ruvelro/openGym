@@ -11,13 +11,14 @@ Requirements: [Docker](https://docs.docker.com/get-docker/) with the Compose plu
 git clone https://github.com/ruvelro/openGym opengym
 cd opengym
 cp .env.example .env
-docker compose up -d --build   # builds both images from source (~2 min the first time)
+docker compose pull   # prebuilt images from ghcr.io (amd64 + arm64) — or skip and build from source
+docker compose up -d
 ```
 
 - The exercise images/GIFs ship in `media/`, so there is nothing to download on first start.
 - Open **http://localhost:8080** and create a profile with a passkey.
-- There are no prebuilt images to pull for this fork, so both containers are built from
-  source on first start — no Node needed locally either way.
+- Rather build from source than pull prebuilt images? Skip `docker compose pull` and run
+  `docker compose up -d --build` instead — no Node needed locally either way.
 
 Check it's healthy:
 
@@ -138,6 +139,14 @@ refuses the lock while the phone is in Low Power Mode.
 
 ```bash
 git pull                    # picks up compose/config changes
+docker compose pull
+docker compose up -d
+```
+
+Building from source instead:
+
+```bash
+git pull
 docker compose up -d --build
 ```
 
@@ -155,4 +164,4 @@ downloaded media are untouched.
 | No "Notifications" option in Settings | Requires a signed-in profile and HTTPS (or `localhost`) — guest mode and plain HTTP over LAN can't subscribe. |
 | Day reminder fires at the wrong time | Toggle it off and on in Settings so it re-detects your browser's timezone (also happens automatically on every app load — see section 6). |
 | Want to reset a stuck login | Delete the cookie in your browser; sessions are just signed cookies. |
-| `docker compose pull` fails with "denied" / "unauthorized" | This fork publishes no prebuilt images — there is nothing to pull. Build from source: `docker compose up -d --build`. |
+| `docker compose pull` fails with "denied" / "unauthorized" | The GHCR packages may have been made private. Build from source instead: `docker compose up -d --build`. |

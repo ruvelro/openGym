@@ -3,10 +3,10 @@ name: Publish images
 # Publishes the two containers to GHCR so self-hosters can pull instead of build.
 # Deliberately not on every push: it runs when you cut a release, or by hand.
 #
-# Once these have run at least once, docker-compose.yml can carry `image:` lines again
-# alongside `build:`. Note that Actions creates GHCR packages as PRIVATE: after the first
-# successful run, make both public under the repo's Packages settings, or `docker compose
-# pull` will fail with "denied" for everyone else.
+# docker-compose.yml carries `image:` lines pointing here, alongside `build:`, so a
+# self-hoster can pull instead of build. The packages inherited this repo's public
+# visibility on creation, so anonymous `docker compose pull` works — worth re-checking
+# after the first run on any new package, since a private one fails with "denied".
 
 on:
   release:

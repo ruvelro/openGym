@@ -8,12 +8,12 @@ need — what the app protects you from and what it doesn't.
 
 Only the **latest release**. Releases are semver tags (`v1.0.0` → `v1.2.3`, see
 [CHANGELOG.md](CHANGELOG.md)); there is no LTS or maintenance branch and older tags are never
-patched. A fix ships in the next release; rebuild to pick it up.
+patched. A fix ships in the next release and in the `latest` images on ghcr.io.
 
 Updating a self-hosted instance:
 
 ```bash
-git pull && docker compose up -d --build
+git pull && docker compose pull && docker compose up -d
 ```
 
 ## Reporting a vulnerability
@@ -49,8 +49,8 @@ in the thread; there's no objection, and no request to sit on it indefinitely.
 - **Frontend** — XSS in the React app, or anything that lets a page on another origin read or
   change a signed-in user's data.
 - **Shipped deployment config** — `docker-compose.yml`, `web/nginx.conf.template`, the two Dockerfiles:
-  a default that exposes something a self-hoster wouldn't expect to be exposed. This fork
-  publishes no prebuilt images; both containers are built from source.
+  a default that exposes something a self-hoster wouldn't expect to be exposed.
+- **The published images** `ghcr.io/ruvelro/opengym-api` and `-web`.
 
 ## Out of scope
 

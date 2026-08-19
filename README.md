@@ -91,12 +91,14 @@ You need [Docker](https://docs.docker.com/get-docker/) with Compose.
 git clone https://github.com/ruvelro/openGym
 cd openGym
 cp .env.example .env
-docker compose up -d --build   # builds both images from source (~2 min the first time)
+docker compose pull            # prebuilt images from ghcr.io (amd64 + arm64)
+docker compose up -d
 ```
 
 Open **http://localhost:8080**, tap **Create profile**, and you're in. The exercise media ships
-in `media/`, so there's nothing to download on first launch. Both containers are built from
-source — you don't need Node or a build step locally.
+in `media/`, so there's nothing to download on first launch. Prefer building the images yourself
+over pulling them? Skip the `pull` and run `docker compose up -d --build` — you don't need Node
+locally either way.
 
 > Want it reachable from your phone over the internet with passkeys? You'll need an HTTPS
 > domain — a two-line change in `.env`. See **[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md)**.

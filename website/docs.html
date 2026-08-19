@@ -86,7 +86,8 @@ npm run build:mobile</code></pre></li>
   <pre><code>git clone https://github.com/ruvelro/openGym
 cd openGym
 cp .env.example .env
-docker compose up -d --build</code></pre>
+docker compose pull    # prebuilt images (amd64 + arm64) — or skip to build from source
+docker compose up -d</code></pre>
   <p>Open <code>http://localhost:8080</code>, tap <b>Create profile</b>, and you're in. The
      exercise media ships with the repo, so there's nothing to download on first launch.</p>
   <div class="note">Want it reachable from your phone with passkeys? You'll need an HTTPS
