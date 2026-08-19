@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question, or self-hosting that won't behave
+    url: https://github.com/ruvelro/openGym/discussions/categories/q-a
+    about: Setup, passkeys, reverse proxies, Docker — ask here, not in an issue.
+  - name: An idea you're not sure about yet
+    url: https://github.com/ruvelro/openGym/discussions/categories/ideas
+    about: Half-formed ideas are welcome. Issues are for work that's already agreed.
+  - name: Show what you built
+    url: https://github.com/ruvelro/openGym/discussions/categories/show-and-tell
+    about: Your setup, your routines, your instance.
+  - name: A security vulnerability
+    url: https://github.com/ruvelro/openGym/security/advisories/new
+    about: Report privately. Please don't open a public issue.

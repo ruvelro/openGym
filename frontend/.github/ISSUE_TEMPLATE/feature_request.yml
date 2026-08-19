@@ -1,0 +1,30 @@
+name: Feature request
+description: Something the tracker should do and doesn't
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Still figuring out whether it's a good idea? Take it to
+        [Discussions → Ideas](https://github.com/ruvelro/openGym/discussions/categories/ideas)
+        instead — this form is for things you've already thought through.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do that you can't?
+      description: Describe the training problem, not the UI you have in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How should it work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do instead today?

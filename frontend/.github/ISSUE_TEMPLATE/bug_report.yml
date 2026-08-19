@@ -1,0 +1,70 @@
+name: Bug report
+description: Something behaves differently than it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please don't report security issues here — use
+        [private reporting](https://github.com/ruvelro/openGym/security/advisories/new).
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens, and what you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the Plan tab
+        2. Add a superset
+        3. …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: flavor
+    attributes:
+      label: How are you running it?
+      options:
+        - Self-hosted (docker compose)
+        - The live demo on GitHub Pages
+        - Android APK
+        - Built from source, some other way
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The tag or commit you're on — `git rev-parse --short HEAD`.
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Safari 18 on iOS 18.2 / Firefox 133 on Fedora 41
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Anything in the logs?
+      description: >
+        `docker compose logs api` and your browser console. Both are rendered as
+        code, so no backticks needed.
+      render: shell
+
+  - type: checkboxes
+    id: passkey
+    attributes:
+      label: If it's about sign-in
+      options:
+        - label: I'm on HTTPS or `http://localhost` (passkeys don't work over a plain LAN IP)
+        - label: My `RP_ID` and `ORIGIN` match the URL in the address bar exactly
