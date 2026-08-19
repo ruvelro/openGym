@@ -4,3 +4,7 @@ dist/
 
 # Local preview tooling (launch configs + static server)
 .claude/
+
+# Runtime state: users, passkeys, session secret, VAPID keys — never commit
+data/
+.env
