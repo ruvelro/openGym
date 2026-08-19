@@ -61,11 +61,11 @@ accounts, no store rules, no yearly fees between you and an open-source app.
 
 ### Android — sideload the APK
 
-The official signed APK is at **[opengym.duarte-santos.ch](https://opengym.duarte-santos.ch)**.
-Android asks you to allow installs from the browser the first time — that's standard for any
-app outside the Play Store.
+This fork publishes no signed APK yet, so there is nothing to download: build and sign your
+own with the steps below. Android asks you to allow installs from the browser the first time —
+that's standard for any app outside the Play Store.
 
-To build and sign your own:
+To build and sign it:
 
 ```sh
 cd frontend && npm run build:mobile

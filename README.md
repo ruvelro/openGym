@@ -81,7 +81,7 @@ as a home-screen app, passkey sign-in, offline support, sync across your phone a
 - 🌍 **12 languages** — full UI translation (EN, DE, ES, FR, IT, PT, PL, TR, RU, ZH, KO, HI); exercise instructions localized in 10 of them, loaded on demand so the app stays fast
 - 📥 **Bring your history with you** — import from **FitNotes** (Android and iOS), **Strong** and **Hevy**, or body weight straight out of an **Apple Health** export. Exercise names are matched against the library and anything unrecognised becomes one of your own exercises, so nothing in the file is dropped
 - 📦 **Yours to keep** — one-tap JSON export/import, guest mode, **no telemetry**
-- 📱 **Standalone Android app** — the whole tracker as a sideloadable APK: no account, no server, data on the phone, native workout reminders ([download](https://opengym.duarte-santos.ch))
+- 📱 **Standalone Android app** — the whole tracker as a sideloadable APK: no account, no server, data on the phone, native workout reminders. No signed build is published yet, so for now it's [something you build](docs/MOBILE.md)
 
 ## Quick start (self-host)
 
@@ -110,8 +110,9 @@ no backend — everything stays on the phone, with native workout-day reminders 
 backups. Self-hosting gets you multi-device sync and profiles for friends & family; the
 mobile app is the install-and-done flavor.
 
-- **Android:** [**download the APK**](https://opengym.duarte-santos.ch) and sideload it —
-  openGym is deliberately not on the Play Store. Or build it yourself: **[docs/MOBILE.md](docs/MOBILE.md)**.
+- **Android:** no signed APK is published yet — build it from this repo with
+  **[docs/MOBILE.md](docs/MOBILE.md)** and sideload it. openGym is deliberately not on the
+  Play Store.
 - **iPhone:** Apple doesn't allow installing apps outside the App Store, so there is no iOS
   download. Self-host and add it to your home screen from Safari (it's a full PWA), or build
   the native app onto your own device from Xcode — see **[docs/MOBILE.md](docs/MOBILE.md)**.
