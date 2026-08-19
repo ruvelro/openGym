@@ -1,10 +1,52 @@
 # Changelog
 
-> **About this fork.** Everything below v1.2.4 happened in the original repository, by its
-> original author, before it was taken down. Links to GitHub and to the live demo have been
+> **About this fork.** v1.2.4 and everything below it happened in the original repository,
+> by its original author, before it was taken down. Links to GitHub and to the live demo have been
 > repointed here so they resolve, but the entries themselves describe the original project —
-> including things this fork does not currently do, such as the prebuilt `ghcr.io` images
-> announced in v1.1.0, which are no longer published. Releases made here start below.
+> including things this fork does not currently do — the `ghcr.io` images announced in
+> v1.1.0 were the original author's and are gone; this fork publishes its own from v1.2.5.
+> Releases made here start at v1.2.5, above.
+
+## v1.2.5 — 2026-08-19
+
+The first release from this fork, and it adds no features: the original repository was taken
+down, and what survived did not run. `docker compose up` failed outright, the repo published
+its own session-signing key, and the docs pointed almost entirely at things that no longer
+existed. This is that, fixed.
+
+### It runs again
+
+- 🐳 **`docker compose up` works.** Compose pointed at `web/Dockerfile`, which an earlier
+  commit had moved to the repo root without updating it. Moved back, with `render.yaml`
+  pointing at the new path so there is one copy rather than two.
+- 📝 **`.env.example` exists.** The self-hosting guide told you to copy it and it had never
+  been committed — and since `env_file` is required, compose refused to even parse without
+  it. Values and defaults taken from what `api/server.js` actually reads.
+- 📦 **Prebuilt images again**, at `ghcr.io/ruvelro/opengym-{api,web}`, multi-arch. The
+  original author's packages went with the account, so `docker compose pull` failed;
+  a workflow publishes these on every release.
+
+### Security
+
+- 🔑 **The session-signing secret is no longer in the repo.** `data/` was tracked, so every
+  clone shipped `data/secret`, the Web Push private key, and a real account with its
+  registered passkey. Anyone reading the repository could forge a valid session cookie
+  against any instance started from a fresh clone. The folder is untracked and ignored;
+  `server.js` regenerates both keys on first run.
+- ⚠️ **If you deployed from a clone made before this release, your instance is using a
+  public secret.** Delete `data/secret` and restart to rotate it. Existing sessions end;
+  passkeys are unaffected.
+
+### Around the app
+
+- ✅ **CI**, running the test suite, the locale-key invariant that had a script but no
+  caller, and a build of both images — the exact thing that was broken above.
+- 🌐 **The site is back**, at `ruvelro.github.io/openGym`, with the live demo under
+  `/demo/`, deployed by a workflow instead of by hand.
+- 📱 **No more APK download.** It pointed at a signed build that was never in the
+  repository. Until this fork cuts one, the page explains how to build it instead.
+- 📚 **The docs describe this repository**, not the one that disappeared: every link
+  repointed, and the claims that stopped being true along the way corrected.
 
 ## v1.2.4 — 2026-08-01
 
