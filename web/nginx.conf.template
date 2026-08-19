@@ -1,5 +1,10 @@
 # openGym — standalone web server: serves the static app AND proxies /api to the backend,
 # so the whole app lives on ONE origin (required for WebAuthn / passkeys).
+#
+# Rendered by the nginx image's own entrypoint, which envsubst's files in
+# /etc/nginx/templates. Only API_UPSTREAM is substituted (NGINX_ENVSUBST_FILTER guards
+# nginx's own $host, $remote_addr and friends). It defaults to the compose service name;
+# a host that names its backend differently — Render — overrides it as host:port.
 server {
     listen 80;
     root /usr/share/nginx/html;
@@ -7,7 +12,7 @@ server {
 
     # API → backend container
     location /api/ {
-        proxy_pass http://api:3000;
+        proxy_pass http://${API_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

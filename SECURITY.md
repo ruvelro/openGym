@@ -48,7 +48,7 @@ in the thread; there's no objection, and no request to sit on it indefinitely.
   being an admin, or creating a profile without a valid code while `INVITE_ONLY=1`.
 - **Frontend** — XSS in the React app, or anything that lets a page on another origin read or
   change a signed-in user's data.
-- **Shipped deployment config** — `docker-compose.yml`, `web/nginx.conf`, the two Dockerfiles:
+- **Shipped deployment config** — `docker-compose.yml`, `web/nginx.conf.template`, the two Dockerfiles:
   a default that exposes something a self-hoster wouldn't expect to be exposed. This fork
   publishes no prebuilt images; both containers are built from source.
 
@@ -61,7 +61,7 @@ in the thread; there's no objection, and no request to sit on it indefinitely.
 - **Missing rate limiting**, brute force, or "I sent 100k requests and it got slow". The app
   has no rate limiting at all and doesn't pretend to; that belongs in the reverse proxy you put
   in front of it. Genuine amplification (one small request causing unbounded work) *is* in scope.
-- **Missing security headers** (CSP, HSTS, X-Frame-Options) — `web/nginx.conf` sets none; TLS
+- **Missing security headers** (CSP, HSTS, X-Frame-Options) — `web/nginx.conf.template` sets none; TLS
   and headers are the reverse proxy's job. A concrete attack that headers would have stopped is
   still worth reporting.
 - Instances served over plain `http://` on a LAN IP. Unsupported: passkeys don't work there and
@@ -128,7 +128,7 @@ Read this before hosting openGym for anyone other than yourself.
 - **Disabling someone isn't a ban.** They can still register a fresh profile with a new passkey
   unless `INVITE_ONLY=1` is set.
 - **HTTPS is required and the app doesn't provide it.** The API container speaks plain HTTP and
-  nginx listens on `:80` (`web/nginx.conf`); TLS is your reverse proxy's job. Without it,
+  nginx listens on `:80` (`web/nginx.conf.template`); TLS is your reverse proxy's job. Without it,
   browsers won't do passkeys at all (except on `http://localhost`) and the session cookie is sent
   in the clear.
 - **No rate limiting anywhere.** Nothing throttles logins, registrations or writes, and

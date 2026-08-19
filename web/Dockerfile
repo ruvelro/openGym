@@ -12,9 +12,21 @@ WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm ci 2>/dev/null || npm install
 COPY frontend/ ./
+
+# Where the app fetches exercise images and animations from. Empty is the default and
+# means "my own origin" — which is what compose serves, mounting media/ into nginx below.
+# A deployment with no such volume (Render, any single-container host) passes the CDN
+# bases instead, so the app works without shipping ~140 MB into the image.
+ARG VITE_IMG_BASE=
+ARG VITE_GIF_BASE=
 RUN npm run build
 
 FROM nginx:alpine
-COPY web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY web/nginx.conf.template /etc/nginx/templates/default.conf.template
+# Where the API lives, as host:port. Overridden by deployments that don't use compose's
+# service names. The filter keeps envsubst away from nginx's own $-variables.
+ENV API_UPSTREAM=api:3000 \
+    NGINX_ENVSUBST_FILTER=^API_
 COPY --from=build /app/dist /usr/share/nginx/html
-# exercise media (img/gif) is mounted at runtime from the media volume
+# exercise media (img/gif) is mounted at runtime from the media volume, unless the
+# build was pointed at a CDN with VITE_IMG_BASE / VITE_GIF_BASE

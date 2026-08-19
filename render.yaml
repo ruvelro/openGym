@@ -1,6 +1,65 @@
+# Render blueprint — https://render.com/docs/blueprint-spec
+#
+# openGym is two containers, and the previous version of this file declared only one:
+# the nginx image, whose config proxies /api/ to the backend. With no backend deployed
+# there was nothing to proxy to, so the app loaded but passkey sign-in, sync and the
+# admin dashboard all failed. Both services are here now.
+#
+# Before deploying, read these three:
+#
+#   1. RP_ID and ORIGIN must match the URL in the browser's address bar exactly, or
+#      passkey verification fails. Render only knows the hostname once the service
+#      exists, so they are `sync: false` — it asks you for them on first deploy.
+#      Changing RP_ID later invalidates every passkey already registered.
+#   2. ./data needs a disk. Disks are not available on Render's free instance type,
+#      which is why `api` is on starter — without one, every profile and passkey is
+#      lost on each restart.
+#   3. Exercise media is served from the media/ volume under compose. Render has no
+#      such volume, so the build is pointed at the CDN copy of the same CC dataset.
+
 services:
   - type: web
-    name: opengym
-    env: docker
+    name: opengym-web
+    runtime: docker
+    plan: starter
+    region: frankfurt          # must match opengym-api: private networking is per-region
     dockerfilePath: ./web/Dockerfile
     dockerContext: .
+    healthCheckPath: /
+    envVars:
+      # Consumed by the Docker build (see the ARGs in web/Dockerfile). Without them the
+      # app would request /img/ and /gif/ from its own origin, where nothing serves them.
+      - key: VITE_IMG_BASE
+        value: https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@7455efae41b330c265e7cd4b78dfa848e7ce5ebd/images/
+      - key: VITE_GIF_BASE
+        value: https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@7455efae41b330c265e7cd4b78dfa848e7ce5ebd/videos/
+      # nginx proxies /api/ here. `hostport` resolves to the private service's
+      # host:port, which is why the config templates this instead of hardcoding it.
+      - key: API_UPSTREAM
+        fromService:
+          type: pserv
+          name: opengym-api
+          property: hostport
+
+  - type: pserv                # private: reachable from opengym-web, not from the internet
+    name: opengym-api
+    runtime: docker
+    plan: starter              # required for the disk below
+    region: frankfurt
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    disk:
+      name: opengym-data
+      mountPath: /data         # users, passkeys, session secret, VAPID keys
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: DATA_DIR
+        value: /data
+      - key: RP_NAME
+        value: openGym
+      - key: RP_ID             # e.g. opengym-web.onrender.com — hostname only
+        sync: false
+      - key: ORIGIN            # e.g. https://opengym-web.onrender.com — full origin
+        sync: false
