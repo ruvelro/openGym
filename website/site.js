@@ -7,7 +7,7 @@
     const cached = sessionStorage.getItem('gh_repo')
     if (cached) d = JSON.parse(cached)
     else {
-      const r = await fetch('https://api.github.com/repos/DuarteSantos8/openGym')
+      const r = await fetch('https://api.github.com/repos/ruvelro/openGym')
       if (!r.ok) return
       d = await r.json()
       sessionStorage.setItem('gh_repo', JSON.stringify({ stargazers_count: d.stargazers_count, forks_count: d.forks_count, open_issues_count: d.open_issues_count }))
@@ -30,7 +30,7 @@
     const cached = sessionStorage.getItem('gh_releases')
     if (cached) rel = JSON.parse(cached)
     else {
-      const r = await fetch('https://api.github.com/repos/DuarteSantos8/openGym/releases?per_page=100')
+      const r = await fetch('https://api.github.com/repos/ruvelro/openGym/releases?per_page=100')
       if (!r.ok) return
       rel = (await r.json()).filter(x => !x.draft && !x.prerelease)
         .map(x => ({ tag: x.tag_name, name: x.name, at: x.published_at, body: x.body || '', url: x.html_url }))
