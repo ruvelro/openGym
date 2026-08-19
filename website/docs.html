@@ -14,18 +14,18 @@
 <body>
 
 <nav><div class="wrap nav-in">
-  <a class="brand" href="/">
+  <a class="brand" href="index.html">
     <img src="icon-180.png" alt="" width="26" height="26" style="border-radius:6px">
     openGym
   </a>
   <div class="nav-links">
-    <a href="/#features" class="hide-s">Features</a>
-    <a href="/#screens" class="hide-s">Screenshots</a>
-    <a href="/#demo" class="hide-s">Demo</a>
+    <a href="index.html#features" class="hide-s">Features</a>
+    <a href="index.html#screens" class="hide-s">Screenshots</a>
+    <a href="index.html#demo" class="hide-s">Demo</a>
     <a href="docs.html">Docs</a>
     <a href="about.html" class="hide-s">About</a>
     <a href="https://github.com/ruvelro/openGym" rel="noopener"><span data-gh="stars">GitHub</span></a>
-    <a class="cta" href="/#download">Download</a>
+    <a class="cta" href="index.html#download">Download</a>
   </div>
 </div></nav>
 
@@ -45,17 +45,22 @@
     <a href="#faq">FAQ</a>
   </div>
 
-  <h2 id="android">Install on Android</h2>
+  <h2 id="android">Build the Android app</h2>
+  <div class="note">This fork publishes <b>no signed APK yet</b>, so there is nothing to
+    download. Building it yourself takes one command plus Android Studio, and the result is
+    the same app.</div>
   <ol>
-    <li>Open <a href="/#download">the download</a> on your phone and tap <b>Download for Android</b>.</li>
-    <li>Your browser will ask whether it may install apps — allow it. This is standard for
-        any app installed outside the Play Store (called <i>sideloading</i>), and you can
-        revoke the permission right after.</li>
-    <li>Open the downloaded <code>openGym.apk</code>, confirm, done. No account, no setup.</li>
+    <li>Install Android Studio (it bundles the SDK) and Java 21.</li>
+    <li>Run the mobile build, which bakes in the CDN media base and syncs the native project:
+        <pre><code>cd frontend
+npm install
+npm run build:mobile</code></pre></li>
+    <li><code>npx cap open android</code>, then run it on your device from Android Studio.</li>
   </ol>
+  <p>The full walkthrough, including signing your own release build, is in
+     <a href="https://github.com/ruvelro/openGym/blob/main/docs/MOBILE.md" rel="noopener">docs/MOBILE.md</a>.</p>
   <div class="note">openGym is deliberately <b>not</b> on the Play Store — no store account
-    between you and an open-source app. The APK is signed; updates install over the old
-    version and keep your data.</div>
+    between you and an open-source app.</div>
   <p>Everything is stored on the phone itself. The only things fetched from the internet are
      the exercise images and animations (from a CDN, on demand).</p>
 
@@ -70,7 +75,7 @@
         your device with a free Apple ID (Apple expires the signature after 7 days; re-run
         from Xcode to renew). See
         <a href="https://github.com/ruvelro/openGym/blob/main/docs/MOBILE.md" rel="noopener">docs/MOBILE.md</a>.</li>
-    <li><b>Just looking?</b> The <a href="https://ruvelro.github.io/openGym/" rel="noopener">live demo</a>
+    <li><b>Just looking?</b> The <a href="demo/" rel="noopener">live demo</a>
         runs in any browser with example data.</li>
   </ul>
 
@@ -81,10 +86,9 @@
   <pre><code>git clone https://github.com/ruvelro/openGym
 cd openGym
 cp .env.example .env
-docker compose pull    # prebuilt images (amd64 + arm64) — skip to build from source
-docker compose up -d</code></pre>
+docker compose up -d --build</code></pre>
   <p>Open <code>http://localhost:8080</code>, tap <b>Create profile</b>, and you're in. The
-     first launch downloads the exercise media (~140&nbsp;MB) once.</p>
+     exercise media ships with the repo, so there's nothing to download on first launch.</p>
   <div class="note">Want it reachable from your phone with passkeys? You'll need an HTTPS
     domain — a two-line change in <code>.env</code>. The full guide, including reverse-proxy
     examples and the invite-only/admin options, is in
@@ -148,7 +152,7 @@ docker compose up -d</code></pre>
     <a href="docs.html">Docs</a>
     <a href="about.html" class="hide-s">About</a>
     <a href="https://github.com/ruvelro/openGym" rel="noopener">GitHub</a>
-    <a href="https://ruvelro.github.io/openGym/" rel="noopener">Live demo</a>
+    <a href="demo/" rel="noopener">Live demo</a>
   </div>
 </div></footer>
 

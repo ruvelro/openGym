@@ -1,0 +1,76 @@
+name: Deploy site
+
+# Publishes the landing page and the demo together:
+#
+#   /openGym/        website/ — hand-written HTML, no build step
+#   /openGym/demo/   frontend built with VITE_DEMO=1
+#
+# The demo is the same app in guest mode: no API, seeded example history. Its exercise
+# media comes from the pinned CC dataset on jsDelivr rather than the committed media/
+# folder, which would put 137 MB on Pages for no benefit.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'frontend/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never two deploys at once; let a newer push win, but don't kill one mid-flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  DATASET: https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@7455efae41b330c265e7cd4b78dfa848e7ce5ebd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        working-directory: frontend
+
+      - name: Build the demo
+        working-directory: frontend
+        env:
+          VITE_DEMO: '1'
+          VITE_IMG_BASE: ${{ env.DATASET }}/images/
+          VITE_GIF_BASE: ${{ env.DATASET }}/videos/
+        run: npm run build
+
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp -R website/. _site/
+          mkdir -p _site/demo
+          cp -R frontend/dist/. _site/demo/
+          test -f _site/index.html && test -f _site/demo/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

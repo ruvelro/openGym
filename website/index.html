@@ -7,9 +7,9 @@
 <meta name="description" content="openGym is a free, open-source gym & body-weight tracker. Download the Android app or self-host it with Docker — no account, no cloud, no telemetry.">
 <meta name="theme-color" content="#0c0e12">
 <meta property="og:title" content="openGym — your workouts, your weights, your data">
-<meta property="og:description" content="Free, open-source gym & body-weight tracker. Android APK or self-hosted with Docker. No account, no cloud, no telemetry.">
-<meta property="og:image" content="https://opengym.duarte-santos.ch/img/banner.png">
-<meta property="og:url" content="https://opengym.duarte-santos.ch/">
+<meta property="og:description" content="Free, open-source gym &amp; body-weight tracker. Self-host it with Docker, or build the Android app. No account, no cloud, no telemetry.">
+<meta property="og:image" content="https://ruvelro.github.io/openGym/img/banner.png">
+<meta property="og:url" content="https://ruvelro.github.io/openGym/">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -20,15 +20,14 @@
  "operatingSystem":"Android, Web","applicationCategory":"HealthApplication",
  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
  "license":"https://www.gnu.org/licenses/agpl-3.0.html",
- "url":"https://opengym.duarte-santos.ch/",
- "downloadUrl":"https://opengym.duarte-santos.ch/openGym.apk",
+ "url":"https://ruvelro.github.io/openGym/",
  "author":{"@type":"Person","name":"Duarte Santos","url":"https://duarte-santos.ch"}}
 </script>
 </head>
 <body>
 
 <nav><div class="wrap nav-in">
-  <a class="brand" href="/">
+  <a class="brand" href="index.html">
     <img src="icon-180.png" alt="" width="26" height="26" style="border-radius:6px">
     openGym
   </a>
@@ -103,10 +102,10 @@
   <p class="lead">This is the real app with seeded example data, running in your browser —
      poke around, start a workout, change anything.</p>
   <div class="demo-wrap">
-    <div class="phone"><iframe src="https://ruvelro.github.io/openGym/" title="openGym live demo" loading="lazy"></iframe></div>
+    <div class="phone"><iframe src="demo/" title="openGym live demo" loading="lazy"></iframe></div>
   </div>
   <p class="demo-note">Demo data lives only in this browser tab-family and can be reset in its
-     Settings. Prefer a full window? <a href="https://ruvelro.github.io/openGym/" rel="noopener">Open the demo full-screen →</a></p>
+     Settings. Prefer a full window? <a href="demo/" rel="noopener">Open the demo full-screen →</a></p>
 </div></section>
 
 <section id="download"><div class="wrap">
@@ -125,8 +124,10 @@
         <li>Backups via the share sheet</li>
         <li class="no">No cross-device sync</li>
       </ul>
-      <a class="btn" href="openGym.apk" download>Download for Android</a>
-      <p class="meta">v1.2.4 · 4.3 MB · Android 6.0+ · signed APK, sideload (your browser will ask — that's normal outside the Play Store)</p>
+      <a class="btn ghost" href="docs.html#android">How to build it</a>
+      <p class="meta">Android 6.0+ · <b>no signed APK is published yet.</b> This fork hasn't cut
+         a release, so for now the Android app is something you build yourself — one command,
+         then Android Studio.</p>
       <p class="meta"><b>iPhone?</b> Apple doesn't allow installs outside the App Store — use the
          self-hosted version as a home-screen app instead, or see <a href="docs.html#iphone">the docs</a>.</p>
     </div>
@@ -141,7 +142,7 @@
         <li>One <code>docker compose up</code></li>
       </ul>
       <a class="btn ghost" href="docs.html#selfhost">Self-hosting guide</a>
-      <p class="meta">AGPL-3.0 · prebuilt images for amd64 + arm64</p>
+      <p class="meta">AGPL-3.0 · built from source, amd64 + arm64</p>
     </div>
   </div>
 </div></section>
@@ -182,7 +183,7 @@
     <a href="docs.html">Docs</a>
     <a href="about.html" class="hide-s">About</a>
     <a href="https://github.com/ruvelro/openGym" rel="noopener">GitHub</a>
-    <a href="https://ruvelro.github.io/openGym/" rel="noopener">Live demo</a>
+    <a href="demo/" rel="noopener">Live demo</a>
   </div>
 </div></footer>
 
