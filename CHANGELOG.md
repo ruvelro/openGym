@@ -1,5 +1,11 @@
 # Changelog
 
+> **About this fork.** Everything below v1.2.4 happened in the original repository, by its
+> original author, before it was taken down. Links to GitHub and to the live demo have been
+> repointed here so they resolve, but the entries themselves describe the original project —
+> including things this fork does not currently do, such as the prebuilt `ghcr.io` images
+> announced in v1.1.0, which are no longer published. Releases made here start below.
+
 ## v1.2.4 — 2026-08-01
 
 The effort ratings you have been recording since v1.2.3 now answer questions, and bodyweight
@@ -298,7 +304,7 @@ A muscle map across the app, and a live demo you can try without installing anyt
 - 🐛 **Fixed: finishing a workout from its last exercise could blank the whole app.** The
   per-exercise weight sheet read the running workout without checking it was still there, and
   finishing clears it while that sheet is still on screen.
-- ▶️ **Live demo** at [duartesantos8.github.io/openGym](https://duartesantos8.github.io/openGym/) —
+- ▶️ **Live demo** at [ruvelro.github.io/openGym](https://ruvelro.github.io/openGym/) —
   a browser-only build (`VITE_DEMO=1`) published to GitHub Pages on every push to `main`. It boots
   into guest mode with a seeded example profile (12 weeks of Push/Pull/Legs, weigh-ins, PRs) so
   every screen has something to show, and it never talks to a server. Passkeys, sync and the admin

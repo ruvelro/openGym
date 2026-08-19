@@ -20,7 +20,7 @@ git pull && docker compose pull && docker compose up -d
 
 Use GitHub's private vulnerability reporting — repo **Security** tab → **Report a vulnerability**:
 
-<https://github.com/DuarteSantos8/openGym/security/advisories/new>
+<https://github.com/ruvelro/openGym/security/advisories/new>
 
 > Private reporting has to be switched on in the repository settings for that link to work
 > (Settings → Advanced Security → Private vulnerability reporting). If it 404s, open a normal
@@ -49,8 +49,8 @@ in the thread; there's no objection, and no request to sit on it indefinitely.
 - **Frontend** — XSS in the React app, or anything that lets a page on another origin read or
   change a signed-in user's data.
 - **Shipped deployment config** — `docker-compose.yml`, `web/nginx.conf`, the two Dockerfiles:
-  a default that exposes something a self-hoster wouldn't expect to be exposed.
-- **The published images** `ghcr.io/duartesantos8/opengym-api` and `-web`.
+  a default that exposes something a self-hoster wouldn't expect to be exposed. This fork
+  publishes no prebuilt images; both containers are built from source.
 
 ## Out of scope
 
