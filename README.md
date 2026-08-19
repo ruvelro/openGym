@@ -160,9 +160,15 @@ Push notification keys are generated on first run and saved to `./data/vapid.jso
 
 ## Roadmap
 
-Rough, community-driven — ideas and PRs welcome:
+Rough, community-driven — ideas and PRs welcome.
 
-- [ ] Standalone mobile app — the Capacitor project is here and [builds from source](docs/MOBILE.md), but this fork publishes no signed APK yet; on iOS as a self-hosted PWA (no store listings planned)
+Two of these are what the fork owes before anything else, and both are tracked:
+
+- [ ] **A public instance** anyone can use, alongside self-hosting — [#2](https://github.com/ruvelro/openGym/issues/2)
+- [ ] **Standalone mobile app** — the Capacitor project is here and [builds from source](docs/MOBILE.md), but this fork publishes no signed APK yet — [#1](https://github.com/ruvelro/openGym/issues/1). On iOS it's a self-hosted PWA (no store listings planned)
+
+The rest, in no particular order:
+
 - [x] Automatic progression programs (linear, Greyskull LP, double progression) with stalls and deloads
 - [x] Estimated 1RM per exercise
 - [ ] Percentage / training-max programming (5/3/1-style) on top of the progression engine
