@@ -11,8 +11,10 @@ and given a sanitized history before continuing development. The mirror was a re
 not an upstream.
 
 The original project later resurfaced at
-[gitea.com/DuarteSantos/openGym](https://gitea.com/DuarteSantos/openGym), where its author
-continues to develop it. That repository is this fork's upstream today: the two git histories
+[gitea.com/DuarteSantos/openGym](https://gitea.com/DuarteSantos/openGym) and then settled at
+[gitlab.com/DuarteSantos8/opengym](https://gitlab.com/DuarteSantos8/opengym), where its author
+continues to develop it (the gitea repository stays as a mirror). The GitLab repository is this
+fork's upstream today: the two git histories
 share no commits (this one began as a snapshot), so upstream releases are brought in by tree
 import rather than by merge — upstream v1.2.6 through v1.2.9 were imported that way in this
 fork's v1.2.9. Fork-specific pieces (GitHub hosting, `ghcr.io/ruvelro` images, the
