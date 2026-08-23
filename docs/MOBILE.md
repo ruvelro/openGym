@@ -38,11 +38,6 @@ npx cap open ios            # opens Xcode (Mac only) → set your signing team, 
 `npm run build:mobile` bakes the CDN media base into the bundle and copies the web build
 into both native projects — re-run it after every web-code change before building natively.
 
-The exercise metadata is MIT-licensed, but the images and animations the app loads are
-© Gym visual and carry separate terms. The dataset's permission does not automatically extend
-to downstream apps; read [`NOTICE.md`](../NOTICE.md) before distributing a build that bundles
-that media (the standard build bundles none — it loads it from the CDN at runtime).
-
 > **Heads-up:** after `build:mobile`, `frontend/dist` contains the *mobile* bundle.
 > Run a plain `npm run build` again before deploying `dist` to a server.
 
@@ -66,9 +61,25 @@ accounts, no store rules, no yearly fees between you and an open-source app.
 
 ### Android — sideload the APK
 
-The official signed APK is at **[opengym.duarte-santos.ch](https://opengym.duarte-santos.ch)**.
+The official signed APK is in three places, all the same file:
+
+- **[opengym.duarte-santos.ch](https://opengym.duarte-santos.ch)** — the download page.
+- **[GitLab's package registry](https://gitlab.com/DuarteSantos8/opengym/-/packages)** — every
+  build under `opengym-android/<version>/`, with a `.sha256` beside it. Direct link, no login:
+  `https://gitlab.com/api/v4/projects/85678327/packages/generic/opengym-android/<version>/openGym-<version>.apk`
+- **[The GitLab release](https://gitlab.com/DuarteSantos8/opengym/-/releases)** for that version,
+  which links to the two above.
+
 Android asks you to allow installs from the browser the first time — that's standard for any
-app outside the Play Store.
+app outside the Play Store. Check the `.sha256` if you got the file from anywhere else.
+
+Both come out of CI: the `build:apk` job in [`.gitlab-ci.yml`](../.gitlab-ci.yml) runs
+`npm run build:mobile` and `./gradlew assembleRelease`, then `zipalign`s and signs the result
+with the release key. The key lives in *protected* CI variables (`ANDROID_KEYSTORE_B64`,
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`), so it only exists on `main` and on `v*`
+tags — a merge request from a fork can build an APK, but gets an unsigned one and never sees
+the key. On a `v*` tag the signed APK is also pushed to the generic package registry, which is
+what the release links to.
 
 To build and sign your own:
 
@@ -100,7 +111,10 @@ that would simply install. Your free options:
 
 - Bump `versionName`/`versionCode` in `android/app/build.gradle` per release; keep them in
   step with `frontend/package.json`. `versionCode` must strictly increase or updates won't
-  install over an existing APK.
+  install over an existing APK. The APK is *named* from `frontend/package.json` (the CI job
+  reads `version` out of it), so the two drifting apart shows up as a misnamed file.
+- Tagging `vX.Y.Z` is what ships everything: images, APK, release notes. Don't push a version
+  tag you don't mean to release — `v*` tags are protected for that reason.
 - **License:** openGym is AGPL-3.0, which by itself sits badly with app-store terms of
   service. `NOTICE.md` carries an app-store exception (an additional permission under
   AGPL §7) granted by the copyright holder — relevant only if store distribution ever happens.
