@@ -48,8 +48,9 @@ admin dashboard only exist in a self-hosted instance.</sub>
 </div>
 
 Originally created by [Duarte Santos](https://duarte-santos.ch) — his project lives on at
-**[gitea.com/DuarteSantos/openGym](https://gitea.com/DuarteSantos/openGym)**, and it is worth a
-visit. This fork is maintained by [ruvelro](https://github.com/ruvelro); it adds features of its
+**[gitlab.com/DuarteSantos8/opengym](https://gitlab.com/DuarteSantos8/opengym)** (with
+[gitea.com](https://gitea.com/DuarteSantos/openGym) as a mirror), and it is worth a visit.
+This fork is maintained by [ruvelro](https://github.com/ruvelro); it adds features of its
 own, and keeps importing upstream's releases as they land, so the two stay in sync. See
 [project provenance](docs/PROVENANCE.md).
 
@@ -128,8 +129,10 @@ no backend — everything stays on the phone, with native workout-day reminders 
 backups. Self-hosting gets you multi-device sync and profiles for friends & family; the
 mobile app is the install-and-done flavor.
 
-- **Android:** no signed APK is published yet — build it from this repo with
-  **[docs/MOBILE.md](docs/MOBILE.md)** and sideload it. openGym is deliberately not on the
+- **Android:** this fork publishes no signed APK yet — build it from this repo with
+  **[docs/MOBILE.md](docs/MOBILE.md)** and sideload it. (The original project now ships its
+  own signed APK from [its GitLab](https://gitlab.com/DuarteSantos8/opengym/-/packages) —
+  same app, with its in-app links pointing there.) openGym is deliberately not on the
   Play Store.
 - **iPhone:** Apple doesn't allow installing apps outside the App Store, so there is no iOS
   download. Self-host and add it to your home screen from Safari (it's a full PWA), or build

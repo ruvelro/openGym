@@ -19,6 +19,9 @@ If you run openGym for other people, you have had no way to answer "who signed i
 the server kept no record of anything. It does now: an **activity log** in the admin dashboard,
 covering sign-ins, sign-outs, the attempts that failed, and every admin action. The other half of
 this release is that **the live demo is back**, self-hosted this time, after two months offline.
+And the project has a working home again: openGym now lives on **GitLab**, where CI builds the
+container images and the signed Android APK for every release — the thing that has been missing
+since the GitHub account went.
 
 ### Activity log
 
@@ -53,6 +56,36 @@ this release is that **the live demo is back**, self-hosted this time, after two
   own site instead of GitHub Pages, which went down in August with the suspended account. Same
   build as before: no backend, no account, seeded example history, and a reset button in its
   settings. The embedded demo on the landing page works again too.
+
+### openGym moved to GitLab
+
+*(Upstream's move — this fork stays on GitHub with its own `ghcr.io` images, and now tracks
+<https://gitlab.com/DuarteSantos8/opengym> as upstream, with gitea.com as the lagging mirror.)*
+
+- 🏠 **<https://gitlab.com/DuarteSantos8/opengym>** is the home of the project. Same history,
+  same tags, same AGPL. gitea.com was the stopgap after the GitHub suspension and stays as a
+  mirror; it never had a CI runner, which is why releases there had no images.
+- 🐳 **Prebuilt images are back.** `docker compose pull` now fetches
+  `registry.gitlab.com/duartesantos8/opengym/api` and `/web`, built for **amd64 and arm64** on
+  every release. Pulling is anonymous — the project is public, no login, no token.
+- 🤖 **The APK is built by CI now, not by hand.** Every `vX.Y.Z` tag produces a `zipalign`ed,
+  signed APK, attached to the GitLab release and mirrored onto the download page. The signing
+  key sits in protected CI variables, so it exists only on `main` and on version tags — a
+  merge request from a fork builds an unsigned APK and never touches the key.
+- ✅ **Every merge request is tested again.** The frontend suite (346 tests), the locale checks,
+  the fatigue probe and the MCP suite all run on GitLab CI. The GitHub Actions workflows stay
+  in `.github/` for the day that account comes back.
+- 🌐 The in-browser demo also builds to GitLab Pages
+  (<https://opengym-bc111a.gitlab.io/>, which <https://duartesantos8.gitlab.io/opengym/>
+  redirects to); <https://opengym.duarte-santos.ch/demo/> remains the copy the landing page
+  embeds.
+- 📄 Security reports have a private channel again: a **confidential issue** on GitLab. See
+  `SECURITY.md`.
+- 🔁 **Dependency updates continue.** GitLab has no Dependabot, so Renovate runs from a monthly
+  scheduled pipeline with the same deliberately quiet policy the Dependabot config had:
+  grouped per ecosystem, majors on their own, odd-numbered Node images skipped, and the
+  generated `android/`/`ios/` projects left to follow their `@capacitor/*` packages. Security
+  advisories ignore the schedule and land on their own.
 
 ### Housekeeping
 

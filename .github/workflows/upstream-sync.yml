@@ -1,7 +1,8 @@
 name: Upstream sync
 
-# Weekly: check the original project at gitea.com/DuarteSantos/openGym for new
-# commits, and open a PR bringing them in. Never merges anything by itself.
+# Weekly: check the original project (now at gitlab.com/DuarteSantos8/opengym;
+# gitea.com is its lagging mirror) for new commits, and open a PR bringing them
+# in. Never merges anything by itself.
 #
 # The two repositories share no git history (this fork began as a snapshot), so
 # "sync" here is a tree import, not a merge: upstream's tree is checked out for
@@ -25,14 +26,14 @@ permissions:
   actions: write          # to dispatch ci.yml on the sync branch
 
 env:
-  UPSTREAM_URL: https://gitea.com/DuarteSantos/openGym.git
+  UPSTREAM_URL: https://gitlab.com/DuarteSantos8/opengym.git
   # Imported from upstream verbatim. docs/ is safe: extra fork files in it
   # (PROVENANCE.md) are not deleted by a path checkout.
   VERBATIM_PATHS: api frontend web scripts assets mcp docs .env.example .dockerignore .gitignore
   # Inside the verbatim paths but owned by this fork — restored after the import.
-  FORK_OWNED: api/Dockerfile web/Dockerfile web/nginx.conf.template frontend/src/lib/demo.js frontend/src/views/Settings.jsx docs/SELF_HOSTING.md
+  FORK_OWNED: api/Dockerfile web/Dockerfile web/nginx.conf.template frontend/src/lib/demo.js frontend/src/views/Settings.jsx frontend/src/lib/plan-share.js docs/SELF_HOSTING.md docs/MOBILE.md
   # Never imported at all; upstream changes to these are flagged for hand-merging.
-  MANUAL_ONLY: CHANGELOG.md README.md NOTICE.md SECURITY.md CONTRIBUTING.md docker-compose.yml website .github .gitea
+  MANUAL_ONLY: CHANGELOG.md README.md NOTICE.md SECURITY.md CONTRIBUTING.md docker-compose.yml website .github .gitea .gitlab .gitlab-ci.yml renovate.json
 
 jobs:
   sync:
