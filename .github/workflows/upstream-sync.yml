@@ -1,0 +1,124 @@
+name: Upstream sync
+
+# Weekly: check the original project at gitea.com/DuarteSantos/openGym for new
+# commits, and open a PR bringing them in. Never merges anything by itself.
+#
+# The two repositories share no git history (this fork began as a snapshot), so
+# "sync" here is a tree import, not a merge: upstream's tree is checked out for
+# the paths this fork tracks verbatim, fork-owned files are restored on top, and
+# the result lands on a sync/upstream-* branch as a PR. Files this fork adapts
+# deliberately (URLs, images, the nginx template, the changelog…) are never
+# imported — when upstream touches one of them, the PR body says so, and that
+# part is merged by hand.
+#
+# .github/UPSTREAM_COMMIT records the last upstream commit already imported.
+# Merging a sync PR updates it, which is what arms the next run.
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'   # Mondays 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write          # to dispatch ci.yml on the sync branch
+
+env:
+  UPSTREAM_URL: https://gitea.com/DuarteSantos/openGym.git
+  # Imported from upstream verbatim. docs/ is safe: extra fork files in it
+  # (PROVENANCE.md) are not deleted by a path checkout.
+  VERBATIM_PATHS: api frontend web scripts assets mcp docs .env.example .dockerignore .gitignore
+  # Inside the verbatim paths but owned by this fork — restored after the import.
+  FORK_OWNED: api/Dockerfile web/Dockerfile web/nginx.conf.template frontend/src/lib/demo.js frontend/src/views/Settings.jsx docs/SELF_HOSTING.md
+  # Never imported at all; upstream changes to these are flagged for hand-merging.
+  MANUAL_ONLY: CHANGELOG.md README.md NOTICE.md SECURITY.md CONTRIBUTING.md docker-compose.yml website .github .gitea
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream and compare
+        id: check
+        run: |
+          git clone --quiet "$UPSTREAM_URL" /tmp/upstream
+          NEW=$(git -C /tmp/upstream rev-parse HEAD)
+          LAST=$(cat .github/UPSTREAM_COMMIT)
+          echo "new=$NEW"   >> "$GITHUB_OUTPUT"
+          echo "last=$LAST" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" = "$LAST" ]; then
+            echo "Up to date with upstream ($LAST)."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code origin "refs/heads/sync/upstream-${NEW:0:7}" >/dev/null 2>&1; then
+            echo "A sync branch for $NEW already exists — nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Upstream moved: $LAST -> $NEW"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Import upstream tree and open the PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEW: ${{ steps.check.outputs.new }}
+          LAST: ${{ steps.check.outputs.last }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BRANCH="sync/upstream-${NEW:0:7}"
+          git switch -c "$BRANCH"
+
+          git remote add upstream /tmp/upstream
+          git fetch --quiet upstream
+          for p in $VERBATIM_PATHS; do
+            git checkout upstream/main -- "$p" 2>/dev/null || echo "::warning::'$p' not present upstream — skipped"
+          done
+          # Fork-owned files stay ours, whatever upstream did to them.
+          git checkout HEAD -- $FORK_OWNED
+          echo "$NEW" > .github/UPSTREAM_COMMIT
+
+          # What the PR reader needs to know: upstream's commits, and which of
+          # them touched files this import deliberately did not carry over.
+          LOG=$(git -C /tmp/upstream log --oneline "$LAST..$NEW" | head -100)
+          ATTN=$(git -C /tmp/upstream diff --name-only "$LAST" "$NEW" -- $FORK_OWNED $MANUAL_ONLY | sort -u)
+          KNOWN=" $VERBATIM_PATHS $MANUAL_ONLY LICENSE render.yaml media "
+          NOVEL=""
+          for e in $(git -C /tmp/upstream ls-tree --name-only HEAD); do
+            case "$KNOWN" in *" $e "*) ;; *) NOVEL="$NOVEL $e";; esac
+          done
+
+          git add -A
+          git commit -m "Import upstream $( git -C /tmp/upstream describe --tags --always ) (${NEW:0:7})" \
+                     -m "Automated tree import from $UPSTREAM_URL — see the PR for what needs hands."
+          git push -u origin "$BRANCH"
+
+          {
+            echo "Upstream moved from \`${LAST:0:7}\` to \`${NEW:0:7}\`. This PR imports the verbatim-tracked paths; review before merging — **nothing merges automatically**."
+            echo
+            echo "## Upstream commits"
+            echo '```'
+            echo "$LOG"
+            echo '```'
+            if [ -n "$ATTN" ]; then
+              echo "## ⚠️ Touched upstream but NOT imported (fork-owned — merge by hand if wanted)"
+              echo '```'
+              echo "$ATTN"
+              echo '```'
+            fi
+            if [ -n "$NOVEL" ]; then
+              echo "## 🆕 Top-level entries upstream has that this import does not cover:$NOVEL"
+            fi
+            echo
+            echo "_Checklist: changelog entries brought over? version bumps sane? \`docker compose config\` still happy? Remember the fork keeps API_UPSTREAM in the nginx template (Render injects PORT)._"
+          } > /tmp/pr-body.md
+
+          gh pr create --base main --head "$BRANCH" \
+            --title "Upstream sync: $(git -C /tmp/upstream log -1 --format=%s "$NEW" | cut -c1-60)" \
+            --body-file /tmp/pr-body.md
+
+          # PRs opened with GITHUB_TOKEN don't trigger pull_request workflows;
+          # dispatching CI explicitly is the documented way around that.
+          gh workflow run ci.yml --ref "$BRANCH" || echo "::warning::could not dispatch CI — run it manually on $BRANCH"
