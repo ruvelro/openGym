@@ -1,10 +1,16 @@
-node_modules/
-dist/
-.DS_Store
+# Exercise media — fetched on first `docker compose up` (or via scripts/fetch-media.sh)
+media/img/
+media/gif/
 
-# Local preview tooling (launch configs + static server)
-.claude/
-
-# Runtime state: users, passkeys, session secret, VAPID keys — never commit
+# Runtime data — users, passkeys, per-user state, session secret
 data/
+
+# Local config
 .env
+
+# Build output / deps
+frontend/dist/
+node_modules/
+*.log
+.DS_Store
+node_modules

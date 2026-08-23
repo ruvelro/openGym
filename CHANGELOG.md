@@ -1,18 +1,121 @@
 # Changelog
 
-> **About this fork.** v1.2.4 and everything below it happened in the original repository,
-> by its original author, before it was taken down. Links to GitHub and to the live demo have been
-> repointed here so they resolve, but the entries themselves describe the original project —
-> including things this fork does not currently do — the `ghcr.io` images announced in
-> v1.1.0 were the original author's and are gone; this fork publishes its own from v1.2.5.
-> Releases made here start at v1.2.5, above.
+> **About this fork.** This repository forked the original project at v1.2.4, when the
+> original GitHub account was suspended and took the repo, images and demo with it. The fork's
+> own v1.2.5 (2026-08-19, below) repaired that snapshot so it ran again. The original project
+> later resurfaced at <https://gitea.com/DuarteSantos/openGym>, and this fork has since brought
+> its releases back in — everything up to v1.2.9 describes upstream work, imported here.
+> This fork publishes its own images at `ghcr.io/ruvelro/opengym-{api,web}`; the `ghcr.io`
+> images announced in v1.1.0 were the original author's and are gone.
 
-## v1.2.5 — 2026-08-19
+## v1.2.9 — 2026-08-23
+
+If you run openGym for other people, you have had no way to answer "who signed in, and when?" —
+the server kept no record of anything. It does now: an **activity log** in the admin dashboard,
+covering sign-ins, sign-outs, the attempts that failed, and every admin action. The other half of
+this release is that **the live demo is back**, self-hosted this time, after two months offline.
+
+### Activity log
+
+- 🧾 **The admin dashboard has an activity log.** Successful and failed sign-ins, profile
+  creations and refused signups, sign-outs (including "sign out everywhere"), and every admin
+  action: disabling or re-enabling an account, creating or revoking an invite code, and clearing
+  the log itself. Filter it by sign-ins, admin actions or failures, and page back through it.
+- 📄 **It is a plain file.** `./data/audit.log`, one JSON object per line — `tail -f` and `jq`
+  read it directly, which also means it is its own export format. Deliberately *not* part of
+  `db.json`: that file is rewritten in full on every save, and the sign-in handshake is
+  unauthenticated, so a log living in there would have turned one junk request into a full
+  rewrite. Retention is a cap rather than an archive — the last `AUDIT_MAX` events (5,000) or
+  `AUDIT_DAYS` days (90), whichever runs out first.
+- 🔒 **It records less than you might expect, on purpose.** No IP addresses unless you turn them
+  on (`AUDIT_IP=net` keeps only the network, `full` keeps the address); never the browser's
+  user-agent; and never the passkey id behind a failed sign-in, because that id is a stable handle
+  for one device and storing it would let an admin follow an unknown device from one attempt to
+  the next. A rejected invite code is not stored either — a near-miss guess sitting in a log file
+  helps nobody.
+- 🧹 **Clearing it is itself logged**, and the event ids keep counting, so an erased stretch always
+  leaves a visible gap.
+- ⚙️ **On by default when you update, and one variable turns it off.** It records strictly less
+  than your instance already holds — every profile is in `db.json`, every workout is in
+  `state-<uid>.json`, and any admin can already read both — and a log that ships switched off
+  tells you nothing on the day you need it. `AUDIT_LOG=0` disables it completely; no file is
+  written. Nothing leaves your server either way: this is a local file, not telemetry.
+- Guests still never appear anywhere — guest mode does not talk to the server at all.
+
+### The live demo is back
+
+- ▶️ **<https://opengym.duarte-santos.ch/demo/>** — the in-browser demo, running on the project's
+  own site instead of GitHub Pages, which went down in August with the suspended account. Same
+  build as before: no backend, no account, seeded example history, and a reset button in its
+  settings. The embedded demo on the landing page works again too.
+
+### Housekeeping
+
+- The self-hosting docs, `SECURITY.md` and `.env.example` cover the activity log, and the
+  `api/server.js` line references in `SECURITY.md` are accurate again.
+
+## v1.2.8 — 2026-08-22
+
+A housekeeping release, and two things worth reading even if you skip the rest. openGym has moved
+to **gitea.com** — the GitHub account it lived on was suspended, and everything you click to
+self-host pointed there. And the exercise media's licence is now stated correctly: the images and
+animations are © Gym visual, not CC, which matters if you redistribute them.
+
+### The project moved to gitea.com
+
+- 🏠 **openGym now lives at <https://gitea.com/DuarteSantos/openGym>.** The GitHub account
+  was suspended on 2026-08-19 and took the repository, the GHCR images, the Pages demo and
+  Discussions with it. `docker compose` now pulls `gitea.com/duartesantos/opengym-{api,web}`; the
+  README, `SECURITY.md`, `CONTRIBUTING.md` and the self-hosting docs point at the new home; issue
+  forms, tests and the image publish run as Gitea Actions. **If you self-host, re-pull:** the old
+  `ghcr.io` images are gone and will not update again.
+- Gitea has no Discussions, so questions and ideas are labelled issues — or the Discord, which
+  is where most of it happens now: <https://discord.gg/e62jY6fwVb>.
+- Old issue and PR numbers in the entries below stay as plain text. They point at a dead repo and
+  do not match the numbering here.
+
+### The exercise media is © Gym visual — not CC
+
+- ⚖️ **openGym described the exercise dataset as "CC". That was wrong**, and it is now
+  corrected everywhere it appeared (README, `NOTICE.md`, the website, the in-app credit, the
+  compose file and `scripts/fetch-media.sh`). Upstream
+  [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) licenses its two
+  halves differently: the exercise **metadata and instruction text are MIT**, while the **images and
+  animations are © [Gym visual](https://gymvisual.com/)**, used under that dataset's terms with
+  permission that is not transferable.
+- **Nothing changes for using openGym.** It never shipped that media — not in the repository,
+  not in its history, not in the images or the APK; your instance downloads it from upstream on
+  first run, and the media step now prints where it comes from and under what terms.
+- **It does change what you may do with the media.** Reusing the images or animations — in
+  openGym or anywhere else, commercially or not — needs your own licence from Gym visual. See
+  [NOTICE.md](NOTICE.md).
+
+### Fixes
+
+- ⬅️ **The back gesture no longer quits the app** (Android). The packaged app never listened for
+  the system back event at all — Capacitor leaves that to `@capacitor/app`, which was not
+  installed — so a back swipe went straight past the WebView and finished the activity from
+  wherever you were. The per-sheet history entries added in [#63] only ever did anything in a
+  browser tab. Back now dismisses the open sheet, then walks back through the screens you came
+  from, and only leaves the app after a second press at the root ("Press back again to exit").
+  A sheet that is locked mid-task still swallows back, as it does in the browser.
+
+### The website counts visits; the app still counts nothing
+
+- 📊 **<https://opengym.duarte-santos.ch> now runs self-hosted, cookieless
+  [Umami](https://umami.is/)** — page views for the landing, about and docs pages, no cookies,
+  no third-party service.
+- 🔒 **Your instance does not.** The frontend only gets an analytics tag when
+  `VITE_UMAMI_SRC` *and* `VITE_UMAMI_ID` are set at build time, which they are not in any published
+  image or in a plain `npm run build`. A self-hosted openGym remains telemetry-free, as advertised.
+
+## v1.2.5 (this fork) — 2026-08-19
 
 The first release from this fork, and it adds no features: the original repository was taken
 down, and what survived did not run. `docker compose up` failed outright, the repo published
 its own session-signing key, and the docs pointed almost entirely at things that no longer
-existed. This is that, fixed.
+existed. This is that, fixed. (Numbered v1.2.5 before upstream's own v1.2.5 below was known
+to exist — the two are unrelated releases that happen to share a number.)
 
 ### It runs again
 
@@ -47,6 +150,238 @@ existed. This is that, fixed.
   repository. Until this fork cuts one, the page explains how to build it instead.
 - 📚 **The docs describe this repository**, not the one that disappeared: every link
   repointed, and the claims that stopped being true along the way corrected.
+
+## v1.2.7 — 2026-08-18
+
+The muscle map answers a third question. Balance showed where the volume went and Fatigue what was
+still recovering; Strength now names the exercises behind a muscle and what each one is worth in
+estimated 1RM. Fatigue itself got harder to fool — a set counts for more the closer it is to your
+maximum, and it can no longer creep upward across a rest week. In a session, supersets finally
+behave: pair them as you go, rest once per round, and drop an exercise you have decided against.
+
+### The muscle map, read as strength
+
+- **A per-muscle exercise breakdown** behind the muscle card — estimated 1RM per exercise, decay
+  bars, and primary/secondary tags, with a best-weight fallback for holds and carries that have no
+  reps to work from. Contributed by [@Space-Hermes](https://github.com/Space-Hermes) in
+  [#92](https://github.com/DuarteSantos8/openGym/pull/92),
+  [#93](https://github.com/DuarteSantos8/openGym/pull/93) and
+  [#94](https://github.com/DuarteSantos8/openGym/pull/94).
+- **Fatigue is now intensity-weighted**, not volume alone: a set counts for more the closer it is
+  to your estimated maximum. It also reads against a stable historical reference, so fatigue can no
+  longer *rise* across a rest week, and bodyweight movements no longer register as zero load. A
+  property probe over 108,000 comparisons runs in CI to keep it that way. Contributed by
+  [@Space-Hermes](https://github.com/Space-Hermes) in
+  [#55](https://github.com/DuarteSantos8/openGym/pull/55).
+
+### In a session
+
+- 🔗 **Supersets advance properly.** Completing a set moves to the next member of the group, the
+  active exercise scrolls into view, and rest starts once the whole round is done rather than after
+  each set. Contributed by [@Space-Hermes](https://github.com/Space-Hermes) in
+  [#80](https://github.com/DuarteSantos8/openGym/pull/80).
+- ➖ **Remove an exercise from a running session**, with a superset-aware picker and a confirmation.
+  Contributed by [@Space-Hermes](https://github.com/Space-Hermes) in
+  [#83](https://github.com/DuarteSantos8/openGym/pull/83).
+- ⬅️ **The Android back button closes the open sheet** instead of leaving the screen or the app
+  ([#63]). Each open sheet gets its own history entry, so stacked sheets unwind one at a time.
+  Contributed by [@Space-Hermes](https://github.com/Space-Hermes) in
+  [#85](https://github.com/DuarteSantos8/openGym/pull/85).
+
+### Self-hosting
+
+- 🐳 **The API service no longer has to be called `api`** ([#99]). The web image builds its nginx
+  config at startup from `BACKEND`, `PORT` and `NGINX_PORT`, all defaulted to today's values, so
+  existing compose files are unaffected. Reported and fixed by
+  [@GAS85](https://github.com/GAS85) in [#100](https://github.com/DuarteSantos8/openGym/pull/100).
+- **…and the shipped `docker-compose.yml` now actually passes those through.** The `web` service
+  had no environment of its own and published a hardcoded `:80`, so setting `BACKEND` or
+  `NGINX_PORT` in `.env` did nothing at all on the stock stack — the setting existed, the wiring
+  did not. Both services now read `PORT` from the same place, so nginx cannot end up proxying to a
+  port the API is not listening on. Defaults are unchanged, so an existing `.env` behaves exactly
+  as before.
+- 🏷️ **Health checks and OCI image labels** on both images — source, licence, version, revision and
+  build date, so image tooling can tell what it is holding. Contributed by
+  [@GAS85](https://github.com/GAS85) in [#98](https://github.com/DuarteSantos8/openGym/pull/98).
+- **Images are published from a release, not from any tag** ([#87]). A tag that gets consolidated
+  away before it becomes a release used to leave its image tags behind in the registry, where
+  dependency bots read them as newer versions.
+
+### Fixes
+
+- **Imported warm-up sets were counted as work.** The importer marks them with `phase`, but several
+  places still read the older boolean, so warm-ups from FitNotes/Strong/Hevy history inflated set
+  counts, progression and the fatigue map.
+
+[#63]: https://github.com/DuarteSantos8/openGym/issues/63
+[#87]: https://github.com/DuarteSantos8/openGym/issues/87
+[#99]: https://github.com/DuarteSantos8/openGym/issues/99
+
+## v1.2.6 — 2026-08-11
+
+The muscle map learned to answer a second question — not just where the volume went, but what is
+still recovering from it. Plus: a freestyle session no longer starts from blanks, the rest timer
+can reach you in another app, and a self-hosted instance can insist that everyone using it has an
+account.
+
+### The muscle map, read as recovery (#44)
+
+- 🔥 **A `Balance | Fatigue | Strength` switch on the Stats muscle card.** Balance is the map you
+  already had and is untouched. Fatigue shades each muscle by how much of the recent training it
+  is still carrying; Strength shades it by how long it has been since you trained it at all, with
+  the weeks-since count spelled out underneath.
+- **Fatigue is volume-sensitive and fades smoothly.** A hard twelve-set chest day starts near the
+  top and takes about six days to read ready again; a single set barely registers and is gone in
+  two. It decays continuously on a 36-hour half-life rather than expiring at a window edge, so the
+  map never flips from "fatigued" to "ready" between one look and the next.
+- **Strength holds for two weeks, then decays toward a floor.** A muscle you have not trained in
+  months reads detrained rather than absent, which is the state that actually tells you something.
+- Both views are pure functions over your existing history — no new stored data, no schema change,
+  nothing sent anywhere.
+
+### The rest timer can reach you in another app (#49)
+
+- ⏰ **A system notification when rest is over**, on top of the beep, for when you have switched to
+  another tab or app mid-session. Permission is asked the first time a rest starts, and everything
+  degrades quietly where notifications are unsupported or refused.
+- It goes through the service worker where the browser requires that — which is most phones — and
+  falls back to the direct API elsewhere. No new dependencies; the existing server push path is
+  untouched.
+
+### Rows now strain the rear delts (#51)
+
+- **Four row variations gained rear-deltoid secondaries** — barbell, dumbbell, inverted and cable
+  seated rows — so the muscle map spreads their load the way the lift actually does. The overrides
+  live in a small table that survives a regeneration of the exercise dataset rather than being
+  edited into the generated data.
+
+### An instance can require an account (#42)
+
+- 🔒 **`ALLOW_GUEST=0` removes the "Continue without account" button.** Guest mode keeps everything
+  in the browser and never touches the server — no account, no sync, nothing the admin dashboard
+  can see — so on an instance meant for a known set of people it was a door leading nowhere
+  useful, and until now there was no way to close it.
+- **It also ends guest sessions that already exist.** Guests never authenticate, so there is no
+  request for the server to start refusing; the switch reaches someone already inside on their
+  next visit, when the app checks the config and returns them to the login screen. Their data is
+  not deleted — it stays in that browser, and moves into a real profile if they create one on the
+  same device.
+- **A server it cannot reach is not a server that said no.** The button is only withdrawn on an
+  explicit `allow_guest: false`; a failed config request, or a server too old to send the flag at
+  all, leaves guest mode exactly as it was. An instance that is merely offline for a moment does
+  not lock out everyone who never made an account.
+- **Default is on, so nothing changes for existing instances.** Set it alongside `INVITE_ONLY=1`:
+  invite-only governs who may *create a profile* and says nothing about the guest button, which
+  never creates one.
+
+### Freestyle sessions start where you left off
+
+- 🏋️ **Adding an exercise to an empty workout now prefills it from the last time you trained
+  it** — the same number of sets, with each row's reps and weight carried across by position.
+  Cardio brings its duration and speed, a hold brings its seconds. Until now every row opened on
+  the config-sheet defaults, so the first thing a freestyle session asked of you was to retype
+  what you already did last week.
+- **The config sheet agrees with the rows it is about to create.** It opens on the last target you
+  actually trained rather than the generic default, so the set count you confirm is the set count
+  you get.
+- **Planned sessions are untouched.** A routine-driven workout still runs the progression logic and
+  still applies its prescription; only the freestyle path — which has no prescription to apply —
+  reads from history instead.
+
+Contributed by [@Space-Hermes](https://github.com/Space-Hermes) in
+[#50](https://github.com/DuarteSantos8/openGym/pull/50).
+
+### Pair exercises into a superset mid-session (#64)
+
+- 🔗 **"Make superset with previous / next" on each exercise card.** Two exercises paired in the
+  session collapse into a single *Superset* card — do them back-to-back, rest once at the end —
+  with an **Unpair** button in the header. No planning ahead required; pair them when you decide
+  to, in the workout.
+- **Groups are any size.** Pairing the end of one group to the start of another merges them, and
+  the header wording stays correct past two exercises.
+- **Unpairing cleans up after itself.** A group reduced to one exercise is dissolved rather than
+  left as a superset of one, and the pairing helpers never mutate the running session.
+- Session-only by design: pairings drive the workout, and history stores the sets.
+
+Contributed by [@Space-Hermes](https://github.com/Space-Hermes) in
+[#64](https://github.com/DuarteSantos8/openGym/pull/64).
+
+### The muscle map stops rewriting the catalogue (#67)
+
+- **The curated secondary-muscle additions are now an overlay, not a mutation.** The four row
+  exercises that strain the rear delts used to get that written into the shared exercise dataset
+  at import time, which meant export, print and import saw a catalogue that had been edited
+  underneath them. They are derived at the read points instead, so the dataset stays pristine.
+- The detail sheet's tag row reads through the same overlay, so those muscles still show where
+  they always did.
+
+Contributed by [@Space-Hermes](https://github.com/Space-Hermes) in
+[#67](https://github.com/DuarteSantos8/openGym/pull/67).
+
+### Fixes
+
+- 🖼️ **Exercise images and animations were blank on the routine screen** ([#79]). The media paths
+  were relative, and `/plan/r/:id` is the app's only two-segment route — so the browser asked for
+  `/plan/r/img/…` and got a 404 with nothing in the console to say why. Every other screen was
+  fine, which is what made it look like a one-screen mystery. Reported with the root cause already
+  found, by [@lemi1000](https://github.com/lemi1000).
+- 📥 **Imports mapped more of what other apps export** ([#74]). Treadmill, Goblet Squat, Cycling and
+  Cable Core Pallof Press arrived as *custom* exercises rather than catalogue ones — no word
+  overlap could reach the names openGym stores them under. Those and their neighbours are now in
+  the alias table. Already-imported history stays custom; new imports resolve. Reported by
+  [@KiloOscarSix](https://github.com/KiloOscarSix).
+- **A progression edge case that could loop forever** ([#60]). An entry left with nothing but
+  warm-up rows seeded the set-growth loop from a warm-up, which could never satisfy its own exit
+  condition. It leaves the entry alone instead. Contributed by
+  [@Space-Hermes](https://github.com/Space-Hermes).
+- Documented that `VITE_IMG_BASE` / `VITE_GIF_BASE` are build-time values, so setting them next to
+  `docker compose` does nothing on a prebuilt image.
+
+[#79]: https://github.com/DuarteSantos8/openGym/issues/79
+[#74]: https://github.com/DuarteSantos8/openGym/issues/74
+[#60]: https://github.com/DuarteSantos8/openGym/pull/60
+
+## v1.2.5 — 2026-08-04
+
+Nothing in the app itself changed. This release adds an optional side door: a small server that
+lets an AI assistant you already run — Claude Desktop, Cursor, Cline — answer questions about
+your own training, off the same files your instance already writes. If you don't use one, this
+release is invisible to you.
+
+### Ask an AI about your training, without the data leaving your box (#19)
+
+- 🤖 **An MCP server (`mcp/`)** — opt-in, read-only, and not part of the Docker build. Your LLM
+  client spawns it as a local process, it reads `./data` directly, and it exits when the client
+  disconnects. No new container, no extra auth on the api, no third-party service, nothing over
+  the network. *"What did I bench last week?", "what's my estimated 1RM on deadlift?", "which
+  muscles have I been neglecting?"*
+- **The answers match the Stats screen because they are the same numbers.** The server calls the
+  very functions in `frontend/src/lib/` the app already computes with, rather than reimplementing
+  them. Eight tools: routines, the week plan, workouts, one session in detail, body weight,
+  estimated 1RM and muscle balance.
+- **Read-only on purpose.** Logging a workout from an assistant needs a long-lived token the api
+  does not have yet, plus a lock against the web UI's read-modify-write. Until both exist, the
+  server answers questions and does nothing else. It never reads passkey material, VAPID keys or
+  session state — only the profile it was pointed at.
+- `docker-compose.yml` is untouched and nothing new enters the image, so an instance that ignores
+  this ships exactly what it shipped before. Setup is in [mcp/README.md](mcp/README.md).
+
+### Under the hood
+
+- The pure half of `i18n.js` — the language state, the constants, the readers — moved into
+  `i18n-core.js`, so the helpers under `frontend/src/lib/` can be loaded by a plain Node process
+  and not only by Vite. `i18n.js` keeps the Vite-only parts (the locale-pack loader, the React
+  hook) and re-exports the rest, so nothing that imports it had to change.
+- The shared lib modules that only need `t` now take it from the core directly. A Vite-only
+  import inside a shared module is invisible under vitest, which transforms it, and fatal to the
+  MCP server, which does not — so the shared half stays clear of the bundler half by
+  construction rather than by remembering to.
+- `npm run check:node-loadable` in `mcp/` walks the server's import graph under a bare `node`,
+  which is the one thing the test suite cannot do from inside Vite. CI runs it, alongside the
+  MCP tests — neither had ever run there before.
+
+The MCP server was contributed by [@Pengboi](https://github.com/Pengboi) — the first feature in
+openGym written by someone other than me. Thank you.
 
 ## v1.2.4 — 2026-08-01
 
@@ -346,7 +681,7 @@ A muscle map across the app, and a live demo you can try without installing anyt
 - 🐛 **Fixed: finishing a workout from its last exercise could blank the whole app.** The
   per-exercise weight sheet read the running workout without checking it was still there, and
   finishing clears it while that sheet is still on screen.
-- ▶️ **Live demo** at [ruvelro.github.io/openGym](https://ruvelro.github.io/openGym/) —
+- ▶️ **Live demo** at [duartesantos8.github.io/openGym](https://duartesantos8.github.io/openGym/) —
   a browser-only build (`VITE_DEMO=1`) published to GitHub Pages on every push to `main`. It boots
   into guest mode with a seeded example profile (12 weeks of Push/Pull/Legs, weigh-ins, PRs) so
   every screen has something to show, and it never talks to a server. Passkeys, sync and the admin

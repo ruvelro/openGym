@@ -15,7 +15,8 @@
 #      which is why `api` is on starter — without one, every profile and passkey is
 #      lost on each restart.
 #   3. Exercise media is served from the media/ volume under compose. Render has no
-#      such volume, so the build is pointed at the CDN copy of the same CC dataset.
+#      such volume, so the build is pointed at the CDN copy of the same dataset. Its
+#      metadata is MIT but the images/GIFs are © Gym visual — see NOTICE.md.
 
 services:
   - type: web

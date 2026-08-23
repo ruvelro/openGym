@@ -10,9 +10,12 @@ frontend/  React + Vite app (src/views, src/components, src/store, src/lib). Bui
            android/ + ios/ are the Capacitor shells for the standalone mobile app (docs/MOBILE.md).
 api/       backend — server.js (Node, no framework), two dependencies (passkeys, web push).
 web/       multi-stage Dockerfile (builds frontend → nginx) + nginx.conf.template (serves app, proxies /api).
-media/     exercise img/gif, committed — nothing is fetched at runtime.
+media/     exercise img/gif (gitignored — fetched on first `docker compose up`).
 website/   the landing page: hand-written HTML/CSS/JS, no build step.
 docs/      self-hosting and mobile-build guides.
+mcp/       optional Model Context Protocol server — read-only stdio bridge for LLM apps
+           (Claude Desktop, Cursor, …) to query a user's workouts/1RM/muscle balance. Not in
+           the Docker build; only runs when an LLM client spawns it. See mcp/README.md.
 .github/   CI (tests, locale check, both images build) and the GHCR publish workflow.
 ```
 

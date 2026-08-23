@@ -61,7 +61,8 @@ as a home-screen app, passkey sign-in, offline support, sync across your phone a
 - 🗓️ **Reschedule any day** — sick, missed a session, or fewer gym days this week? Move a workout to another day without touching your weekly plan
 - ▶️ **Guided workouts** — it knows what day it is and starts today's session; asks your body weight first, pre-fills your weights from last time, rest timer, PR detection, per-exercise weight tracking
 - ☀️ **The screen stays awake while you train** — no unlocking the phone and finding your place again between every set. On for as long as a workout is running, released the moment you finish it, and switchable off in Settings
-- 🔗 **Supersets** — build them, and log them back-to-back with a rest only after the pair
+- 🔗 **Supersets** — plan them into a routine or pair two exercises *mid-session* with "make superset with previous/next", then work through the group back-to-back with a single rest at the end of each round. Unpair at any time; a group of one dissolves itself
+- 🔥 **Warm-up sets** — mark the ramp-up rows as warm-ups and they stay out of the numbers that should not see them: no effect on your estimated 1RM, your progression, or the fatigue map, while still being there in the session where you need them. A weight change cascades down the rows that share their phase, not across the divide
 - ⏱️ **Timed exercises** — planks, hangs, wall sits and loaded carries are logged by time, not reps, with a work timer that counts the set itself (separate from the rest timer) and logs the time you actually held. They can carry weight too
 - 📈 **Progression that follows a rule** — pick one per routine, override it per exercise: linear, **Greyskull LP** (AMRAP top set, double jumps, 10 % resets), double progression through a rep range, or adding time. Your weights are already right when the session opens, and every target says *why* it's that number. Missed reps never advance the load, stalls trigger a deload, and bodyweight exercises progress in reps instead
 - 💪 **Estimated 1RM** — per exercise, from your best eligible set (it names which one), with its own progress curve and a calculator for sets you haven't done. Won't guess above 12 reps
@@ -73,14 +74,15 @@ as a home-screen app, passkey sign-in, offline support, sync across your phone a
 - 🔧 **Filter by equipment** — narrow the library to what you actually own; the options adapt to what you've picked, so every combination on screen has results behind it
 - ✨ **Your own exercises** — a name and a body part is enough; they behave like built-in ones everywhere, with an optional description instead of an animation
 - 🟩 **Activity heatmap** — a GitHub-style year view, shaded by time spent training
-- 💪 **Muscle map** — a front-and-back body diagram shaded by how much work each muscle got, over a week, a month or all time. It names the muscles you *haven't* trained in that period, previews what a routine hits while you build it, and shows what you just trained when you finish. Male or female figure, your pick
+- 💪 **Muscle map, three ways** — a front-and-back body diagram you can read as **Balance** (where the volume went, over a week, a month or all time — naming the muscles you *haven't* trained), **Fatigue** (what is still recovering, weighted by how close each set was to your maximum, decaying smoothly rather than expiring at a window edge) or **Strength** (how long since you trained each muscle, and behind every one the exercises that built it with their estimated 1RM). It previews what a routine hits while you build it, and shows what you just trained when you finish. Male or female figure, your pick
 - 🔔 **Push notifications** — rest-timer alerts even with the app closed, plus an optional reminder on days you have a workout planned but haven't logged one. Opt in per profile; keys are generated on first run, nothing to configure
 - 🔑 **Passkeys, not passwords** — Face ID / Touch ID / fingerprint login; each profile keeps its own data, synced across devices
-- 🛠️ **Admin dashboard** (optional) — for whoever runs the instance: who's training right now, per-user history, disable accounts, and invite-only signup. Off by default, so a fresh instance stays open with no admin
+- 🛠️ **Admin dashboard** (optional) — for whoever runs the instance: who's training right now, per-user history, disable accounts, invite-only signup, and an **activity log** of sign-ins, failed attempts and admin actions. Off by default, so a fresh instance stays open with no admin
 - 🎨 **Designed, not assembled** — light/dark themes and 8 accent colors saved to your profile, over a hand-drawn icon set instead of emoji, so it looks the same on every phone
 - 🌍 **12 languages** — full UI translation (EN, DE, ES, FR, IT, PT, PL, TR, RU, ZH, KO, HI); exercise instructions localized in 10 of them, loaded on demand so the app stays fast
 - 📥 **Bring your history with you** — import from **FitNotes** (Android and iOS), **Strong** and **Hevy**, or body weight straight out of an **Apple Health** export. Exercise names are matched against the library and anything unrecognised becomes one of your own exercises, so nothing in the file is dropped
 - 📦 **Yours to keep** — one-tap JSON export/import, guest mode, **no telemetry**
+- 🤖 **Ask an AI about your training** (optional) — an [MCP server](mcp/README.md) lets a client like Claude Desktop or Cursor read your history in your own words: *"what did I bench last week?"*. Read-only, spawned locally by the client, nothing leaves your box. Not in the Docker build — if you don't use an AI assistant, it isn't there
 - 📱 **Standalone Android app** — the whole tracker as a sideloadable APK: no account, no server, data on the phone, native workout reminders. No signed build is published yet, so for now it's [something you build](docs/MOBILE.md)
 
 ## Quick start (self-host)
@@ -95,10 +97,20 @@ docker compose pull            # prebuilt images from ghcr.io (amd64 + arm64)
 docker compose up -d
 ```
 
-Open **http://localhost:8080**, tap **Create profile**, and you're in. The exercise media ships
-in `media/`, so there's nothing to download on first launch. Prefer building the images yourself
-over pulling them? Skip the `pull` and run `docker compose up -d --build` — you don't need Node
-locally either way.
+Open **http://localhost:8080**, tap **Create profile**, and you're in. First launch downloads
+the exercise media (~140 MB) once.
+
+> **About that media:** it comes from
+> [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset), whose
+> metadata and instruction text are MIT — but whose images and animations are
+> **© [Gym visual](https://gymvisual.com/)**, used under that dataset's terms and *not* under
+> openGym's AGPL. openGym ships none of it: your instance downloads it from upstream. Reusing it
+> yourself, commercially or not, needs your own licence from Gym visual — see
+> [NOTICE.md](NOTICE.md).
+
+Prefer building the images yourself instead of pulling from
+`ghcr.io`? Drop the `pull` step and run `docker compose up -d --build` — you don't need Node or
+a build step locally either way.
 
 > Want it reachable from your phone over the internet with passkeys? You'll need an HTTPS
 > domain — a two-line change in `.env`. See **[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md)**.
@@ -133,13 +145,14 @@ mobile app is the install-and-done flavor.
 ```
 
 - **frontend/** — React + Vite (React Router + Zustand), built to static files **inside Docker**
-- **api/** — Node with no framework, one dependency (`@simplewebauthn/server`), storing everything as plain JSON files under `./data`
+- **api/** — Node with no framework, two dependencies (`@simplewebauthn/server` for passkeys, `web-push` for notifications), storing everything as plain JSON files under `./data`
 - **web/** — a multi-stage image that builds the frontend and serves it with nginx, proxying `/api` to the backend so it's all on **one origin** (passkeys require this)
 
 ## Your data
 
 Lives in `./data` on your host: `db.json` (profiles + public passkeys), `state-<user>.json`
-(each user's plan, workouts, body weight, settings), and `secret` (the session-cookie key).
+(each user's plan, workouts, body weight, settings), `audit.log` (the admin activity log — sign-ins
+and admin actions, no IP addresses unless you ask for them) and `secret` (the session-cookie key).
 **Back up `./data` and you've backed up everything.** Passkey private keys never touch the
 server — they stay in your phone's secure hardware / your password manager.
 
@@ -152,11 +165,23 @@ All via `.env` (see `.env.example`):
 | `RP_ID`       | Hostname passkeys are bound to                       | `localhost`             |
 | `ORIGIN`      | Full URL the app is served from                      | `http://localhost:8080` |
 | `WEB_PORT`    | Host port for the web UI                             | `8080`                  |
+| `NGINX_PORT`  | Port the web container listens on, inside the container | `80`                 |
+| `BACKEND`     | Name of the API service that `/api` is proxied to — change it if yours isn't called `api` | `api` |
+| `PORT`        | Port the API listens on; the web container proxies to the same value | `3000`  |
 | `RP_NAME`     | Name shown in the passkey prompt                     | `openGym`               |
+| `SESSION_DAYS`| How long a sign-in lasts, in days                    | `90`                    |
 | `ADMIN_UIDS`  | User ids that get the admin dashboard (comma-separated) | *(none)*             |
 | `INVITE_ONLY` | Require an invite code to create a profile           | *(off)*                 |
+| `ALLOW_GUEST` | Offer "Continue without account" — set `0` to require a profile | *(on)*       |
+| `AUDIT_LOG`   | Record sign-ins and admin actions — set `0` to record nothing | *(on)*        |
+| `AUDIT_MAX`   | Events kept in the activity log; `0` for no limit    | `5000`                  |
+| `AUDIT_DAYS`  | Days kept in the activity log; `0` to keep until `AUDIT_MAX` | `90`            |
+| `AUDIT_IP`    | Record the caller's address: `off`, `net` (network only) or `full` | `off`     |
+| `VAPID_SUBJECT` | Contact URL sent with push notifications           | your `ORIGIN`           |
 
 Push notification keys are generated on first run and saved to `./data/vapid.json` — nothing to set.
+`DATA_DIR` is pinned to `/data` by `docker-compose.yml` and mapped to `./data` on the host; change the
+host side of that volume, not the variable.
 
 ## Roadmap
 
@@ -182,7 +207,8 @@ The rest, in no particular order:
 ## Tech
 
 React 19 + Vite (React Router, Zustand) · Node (no framework) · nginx · Docker Compose ·
-WebAuthn · exercise data from [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset).
+WebAuthn · exercise data from [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset)
+(MIT metadata and instructions; media © Gym visual — see [License](#license)).
 No database server, no cloud dependencies — the frontend builds inside Docker, so self-hosting
 stays a one-command `docker compose up`.
 
@@ -190,6 +216,10 @@ The training logic — progression rules, 1RM estimation, how a logged session i
 lives in pure functions under `frontend/src/lib/` with tests next to them: `npm test` in
 `frontend/`. Vitest is a dev dependency; the app itself ships no runtime dependencies beyond
 React, the router and Zustand.
+
+The same pure helpers power an optional MCP server (`mcp/`) that lets an LLM client like
+Claude Desktop read your data over stdio — see [mcp/README.md](mcp/README.md). Opt-in, not
+in the Docker build.
 
 ## Community
 
@@ -214,8 +244,16 @@ top of the page is there — a star, a bug report or a PR is worth just as much.
 
 ## License
 
-[GNU AGPL v3.0](LICENSE) — free and open source. You can self-host, use, modify and share it;
-if you run a modified version as a network service, you must offer that version's source under
-the same license. Nobody can turn openGym into a closed, proprietary product.
+**openGym's own code** is [GNU AGPL v3.0](LICENSE) — free and open source. You can self-host,
+use, modify and share it; if you run a modified version as a network service, you must offer that
+version's source under the same license. Nobody can turn openGym into a closed, proprietary
+product.
 
-Exercise images/GIFs are fetched from the upstream dataset and keep their own terms — see [NOTICE.md](NOTICE.md).
+**Third-party content is not, and openGym cannot sublicense it.** The exercise metadata and
+instruction text come from
+[hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) under the
+**MIT** license. The exercise images and animations are **© [Gym visual](https://gymvisual.com/)**
+and are used under that dataset's terms — openGym does not redistribute them (your instance
+fetches them at first run) and does not relicense them under the AGPL. To reuse that media
+yourself, get your own licence from Gym visual
+([terms](https://gymvisual.com/content/3-terms-and-conditions-of-use)).

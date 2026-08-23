@@ -22,11 +22,36 @@ ARG VITE_GIF_BASE=
 RUN npm run build
 
 FROM nginx:alpine
+ARG VERSION=dev
+ARG VCS_REF=dev
+ARG BUILD_DATE=unknown
+
+LABEL org.opencontainers.image.title="opengym-web" \
+    org.opencontainers.image.description="Frontend for Self-hosted gym & body-weight tracker — plan routines, log workouts (supersets & cardio too), track your weight and progress, passkey login. Your data, your server." \
+    org.opencontainers.image.source="https://github.com/ruvelro/openGym" \
+    org.opencontainers.image.url="https://github.com/ruvelro/openGym/pkgs/container/opengym-web" \
+    org.opencontainers.image.documentation="https://github.com/ruvelro/openGym#readme" \
+    org.opencontainers.image.licenses="AGPL-3.0-or-later" \
+    org.opencontainers.image.version=$VERSION \
+    org.opencontainers.image.revision=$VCS_REF \
+    org.opencontainers.image.created=$BUILD_DATE
+
 COPY web/nginx.conf.template /etc/nginx/templates/default.conf.template
-# Where the API lives, as host:port. Overridden by deployments that don't use compose's
-# service names. The filter keeps envsubst away from nginx's own $-variables.
-ENV API_UPSTREAM=api:3000 \
-    NGINX_ENVSUBST_FILTER=^API_
 COPY --from=build /app/dist /usr/share/nginx/html
-# exercise media (img/gif) is mounted at runtime from the media volume, unless the
-# build was pointed at a CDN with VITE_IMG_BASE / VITE_GIF_BASE
+# exercise media (img/gif) is mounted at runtime from the media volume
+
+# Set Default ENVs for nginx. API_UPSTREAM is host:port in one variable (not the
+# BACKEND/PORT pair) because Render injects its own PORT into web containers — see
+# the header of web/nginx.conf.template. Compose overrides it from BACKEND/PORT in .env.
+ENV NGINX_PORT=80
+ENV API_UPSTREAM=api:3000
+
+# Probe the port nginx was actually told to listen on (NGINX_PORT is configurable, so a
+# hardcoded http://localhost/ breaks on any instance that changed it), and address it as
+# 127.0.0.1: envsubst rewrites the conf after the image's IPv6 script, so nginx ends up
+# listening on IPv4 only while "localhost" resolves to ::1 first.
+HEALTHCHECK --interval=5m \
+            --timeout=5s \
+            --retries=3 \
+            CMD wget --spider -q "http://127.0.0.1:${NGINX_PORT}/" || exit 1
+

@@ -1,12 +1,14 @@
 # openGym — standalone web server: serves the static app AND proxies /api to the backend,
 # so the whole app lives on ONE origin (required for WebAuthn / passkeys).
 #
-# Rendered by the nginx image's own entrypoint, which envsubst's files in
-# /etc/nginx/templates. Only API_UPSTREAM is substituted (NGINX_ENVSUBST_FILTER guards
-# nginx's own $host, $remote_addr and friends). It defaults to the compose service name;
-# a host that names its backend differently — Render — overrides it as host:port.
+# Rendered by the nginx image's own entrypoint, which envsubst's the files in
+# /etc/nginx/templates. The backend is one variable, API_UPSTREAM (host:port), not the
+# upstream BACKEND/PORT pair: Render injects its own PORT into the web container, which
+# would silently repoint the proxy. Compose builds API_UPSTREAM from BACKEND and PORT in
+# .env (see docker-compose.yml), so renaming the api service still works; Render passes
+# the private service's hostport directly (see render.yaml).
 server {
-    listen 80;
+    listen ${NGINX_PORT};
     root /usr/share/nginx/html;
     index index.html;
 
