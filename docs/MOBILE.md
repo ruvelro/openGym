@@ -38,6 +38,11 @@ npx cap open ios            # opens Xcode (Mac only) → set your signing team, 
 `npm run build:mobile` bakes the CDN media base into the bundle and copies the web build
 into both native projects — re-run it after every web-code change before building natively.
 
+The exercise metadata is MIT-licensed, but the images and animations the app loads are
+© Gym visual and carry separate terms. The dataset's permission does not automatically extend
+to downstream apps; read [`NOTICE.md`](../NOTICE.md) before distributing a build that bundles
+that media (the standard build bundles none — it loads it from the CDN at runtime).
+
 > **Heads-up:** after `build:mobile`, `frontend/dist` contains the *mobile* bundle.
 > Run a plain `npm run build` again before deploying `dist` to a server.
 

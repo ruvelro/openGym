@@ -6,8 +6,8 @@ name: Deploy site
 #   /openGym/demo/   frontend built with VITE_DEMO=1
 #
 # The demo is the same app in guest mode: no API, seeded example history. Its exercise
-# media comes from the pinned CC dataset on jsDelivr rather than the committed media/
-# folder, which would put 137 MB on Pages for no benefit.
+# media comes from the pinned dataset copy on jsDelivr rather than a media/ folder —
+# the images and GIFs are © Gym visual (see NOTICE.md), and Pages must not host them.
 
 on:
   push:

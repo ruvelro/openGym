@@ -88,8 +88,9 @@ cd openGym
 cp .env.example .env
 docker compose pull    # prebuilt images (amd64 + arm64) — or skip to build from source
 docker compose up -d</code></pre>
-  <p>Open <code>http://localhost:8080</code>, tap <b>Create profile</b>, and you're in. The
-     exercise media ships with the repo, so there's nothing to download on first launch.</p>
+  <p>Open <code>http://localhost:8080</code>, tap <b>Create profile</b>, and you're in. First
+     launch downloads the exercise media (~140&nbsp;MB) once — it is © Gym visual and not part
+     of the repository.</p>
   <div class="note">Want it reachable from your phone with passkeys? You'll need an HTTPS
     domain — a two-line change in <code>.env</code>. The full guide, including reverse-proxy
     examples and the invite-only/admin options, is in
@@ -151,7 +152,7 @@ docker compose up -d</code></pre>
 </main>
 
 <footer><div class="wrap foot">
-  <span>openGym · AGPL-3.0 · © 2026 <a href="https://duarte-santos.ch" rel="noopener">Duarte Santos</a></span>
+  <span>openGym · AGPL-3.0 · originally by <a href="https://duarte-santos.ch" rel="noopener">Duarte Santos</a> · maintained by <a href="https://github.com/ruvelro" rel="noopener">ruvelro</a></span>
   <div class="links">
     <a href="docs.html">Docs</a>
     <a href="about.html" class="hide-s">About</a>

@@ -1,7 +1,9 @@
 # Third-party notices
 
-openGym — Copyright (C) 2026 Duarte Santos.
-openGym's own code is licensed under the **GNU AGPL v3.0** (see [LICENSE](LICENSE)).
+openGym — Copyright (C) 2026 Duarte Santos; this fork is maintained by
+[ruvelro](https://github.com/ruvelro), and copyright in subsequent contributions remains with
+their respective contributors. openGym's own code is licensed under the **GNU AGPL v3.0**
+(see [LICENSE](LICENSE)). For the fork's history, see [docs/PROVENANCE.md](docs/PROVENANCE.md).
 
 ## App store exception
 
@@ -89,10 +91,13 @@ dataset; that permission is **not transferable**. Their use is governed by Gym v
 [Terms & Conditions](https://gymvisual.com/content/3-terms-and-conditions-of-use) — not by the MIT
 license above, and not by openGym's AGPL.
 
-**openGym does not redistribute this media.** It is not in this repository, not in its history,
-and not in the published Docker images or the Android APK. A self-hosted instance downloads it
-from the upstream source on first `docker compose up`; the mobile and demo builds load it from a
-CDN at runtime.
+**openGym does not redistribute this media.** It is not tracked in this repository and is not
+in the published Docker images or the Android APK. A self-hosted instance downloads it from the
+upstream source on first `docker compose up`; the mobile and demo builds load it from a CDN at
+runtime. (One fork-specific honesty note: commits before this fork's v1.2.9 did track the media,
+so it remains reachable in this repository's git history — see
+[docs/PROVENANCE.md](docs/PROVENANCE.md). Nothing current references it there, and it must not
+be reused from there either.)
 
 If you want to reuse the media — in openGym or anywhere else, commercially or not — **obtain your
 own license from Gym visual first**, and keep the `© Gym visual — https://gymvisual.com/`

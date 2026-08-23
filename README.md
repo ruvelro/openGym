@@ -47,6 +47,11 @@ admin dashboard only exist in a self-hosted instance.</sub>
 
 </div>
 
+Originally created by [Duarte Santos](https://duarte-santos.ch), whose project now lives at
+[gitea.com/DuarteSantos/openGym](https://gitea.com/DuarteSantos/openGym); this fork is
+maintained by [ruvelro](https://github.com/ruvelro) and tracks upstream's releases. See
+[project provenance](docs/PROVENANCE.md).
+
 ## Why
 
 Most workout apps lock your data behind a login on their servers, nag you to upgrade, or
