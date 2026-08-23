@@ -7,6 +7,11 @@
 > its releases back in — everything up to v1.2.9 describes upstream work, imported here.
 > This fork publishes its own images at `ghcr.io/ruvelro/opengym-{api,web}`; the `ghcr.io`
 > images announced in v1.1.0 were the original author's and are gone.
+>
+> As of this fork's v1.2.9 the exercise media is no longer tracked in the repository — it is
+> © Gym visual, not redistributable (see v1.2.8 below), and is downloaded from the upstream
+> dataset on first `docker compose up`, exactly as the original project does. An existing
+> checkout loses the files on `git pull`; the next `docker compose up -d` restores them.
 
 ## v1.2.9 — 2026-08-23
 
