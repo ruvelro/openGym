@@ -47,9 +47,10 @@ admin dashboard only exist in a self-hosted instance.</sub>
 
 </div>
 
-Originally created by [Duarte Santos](https://duarte-santos.ch), whose project now lives at
-[gitea.com/DuarteSantos/openGym](https://gitea.com/DuarteSantos/openGym); this fork is
-maintained by [ruvelro](https://github.com/ruvelro) and tracks upstream's releases. See
+Originally created by [Duarte Santos](https://duarte-santos.ch) — his project lives on at
+**[gitea.com/DuarteSantos/openGym](https://gitea.com/DuarteSantos/openGym)**, and it is worth a
+visit. This fork is maintained by [ruvelro](https://github.com/ruvelro); it adds features of its
+own, and keeps importing upstream's releases as they land, so the two stay in sync. See
 [project provenance](docs/PROVENANCE.md).
 
 ## Why
