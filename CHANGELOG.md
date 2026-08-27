@@ -4,7 +4,7 @@
 > original GitHub account was suspended and took the repo, images and demo with it. The fork's
 > own v1.2.5 (2026-08-19, below) repaired that snapshot so it ran again. The original project
 > later resurfaced at <https://gitea.com/DuarteSantos/openGym>, and this fork has since brought
-> its releases back in — everything up to v1.2.9 describes upstream work, imported here.
+> its releases back in — everything up to v1.2.11 describes upstream work, imported here.
 > This fork publishes its own images at `ghcr.io/ruvelro/opengym-{api,web}`; the `ghcr.io`
 > images announced in v1.1.0 were the original author's and are gone.
 >
@@ -12,6 +12,161 @@
 > © Gym visual, not redistributable (see v1.2.8 below), and is downloaded from the upstream
 > dataset on first `docker compose up`, exactly as the original project does. An existing
 > checkout loses the files on `git pull`; the next `docker compose up -d` restores them.
+
+## v1.2.11 — 2026-08-25
+
+A correction release. v1.2.10 landed planned warm-ups and notes, and reviewing that release
+afterwards turned up six defects it had either introduced or made matter — three of them in the
+warm-up work itself. None of them broke a test, which is the point: they were gaps beside the
+tests rather than failures in them.
+
+### Warm-ups
+
+- ⚖️ **Warm-ups were counted in your session volume.** Every other part of the app leaves them
+  out — records, progression, the muscle map — and the routine screen says so in as many words
+  ("left out of volume, records and progression"). Volume was the one place it was not true.
+  Three planned warm-ups on a 3×5 at 100 kg reported 2562.5 instead of 1500, and that number is
+  written into the finished workout, so it would have stayed wrong for good.
+- 📉 **On a deload, the last warm-up came out heavier than the work sets.** The ramp was built
+  before progression had its say and nothing recalculated it, so a plan dropping from 100 kg to
+  50 kg gave you warm-ups of 50 and 75 under work sets of 50. The ramp is now derived after the
+  prescription, so it always aims at the weight you are actually about to lift. A warm-up you
+  have already logged keeps its weight — it happened.
+- 🧱 **One too-heavy warm-up spread to the rest.** Editing a warm-up above the working weight
+  made every warm-up added after it inherit that number. Your own edit stays as you typed it;
+  what stops is the inheritance.
+
+### Notes
+
+- 📝 **The session note now exists.** v1.2.10 described three kinds of note and shipped two: the
+  code that saves a whole-session note was there, and tested, but nothing in the app ever wrote
+  one. There is a note field next to the finish button now — wrapping up is when you know how
+  the session went.
+- 💾 **The session note stopped being thrown away.** In a past workout it only saved when the
+  field lost focus, and Escape, the Android back gesture and swipe-to-dismiss all close a sheet
+  without that ever happening. Type a note, press Escape, gone. It now saves on the way out too.
+
+### Sharing, stats and settings
+
+- 🔗 **Shared plans carry drop-sets and rest-pause.** A routine built as "3×5 with a double
+  drop" arrived at the other end as a plain 3×5, silently. Both the intensifier and the planned
+  warm-up count are now clamped in both directions, so a hand-edited plan file cannot put a
+  nonsense number in front of you either.
+- 🔢 **The version is visible again**, at the bottom of Settings — which is where the support
+  template has been telling people to look for it. On the phone there is no address bar, so
+  there was no way to tell which build you had or whether an update installed. (issue #7)
+- ⏹️ **The rest timer can be turned off.** v1.2.10 made this worse before it made it better: it
+  started resting after every set instead of finishing an exercise quietly, and there was still
+  no way out. "Off" now sits with the other durations.
+- 📊 **The exercise picker in Stats no longer runs long names into the label** (mflova, !24), and
+  **a chart tooltip no longer lingers from the previous exercise** (mflova, !25). The estimated-1RM
+  series is memoised as well, so the tooltip stops vanishing under your finger while you read it.
+
+### Website
+
+- 🌐 **opengym.duarte-santos.ch has been rebuilt** — a bento layout with real device frames, a
+  mobile menu that opens instead of hiding, scroll reveals that respect `prefers-reduced-motion`,
+  and a section collecting where the project actually lives. It had been live for a while without
+  ever being committed, so the repository and the site had drifted apart.
+
+## v1.2.10 — 2026-08-25
+
+The first release since the move to GitLab that is mostly **other people's work**. Nine
+contributors, thirteen merge requests: Brazilian Portuguese in full — interface, all 1,324
+exercise names and all 7,710 instruction steps — equipment profiles for people who train in more
+than one gym, drop-sets and rest-pause, a way to pair the mobile app with your own server, and a
+round of security hardening on the API and the reverse proxy.
+
+Alongside that, the bugs you reported in #bugs-and-ideas and on the issue tracker, several of
+which turned out to be worse than they looked from the outside.
+
+### Training
+
+- 🔥 **"Add warm-up set" gave you a warm-up at your full working weight.** It looked for the row
+  to ramp from at the position *before* the first work set — which for the first warm-up is
+  index −1, so it fell through to the last row instead: your heaviest set. Every warm-up you
+  added had to be corrected by hand. Warm-ups now ramp toward the work weight, each one closing
+  half the remaining gap (50% → 75% → 87.5%), rounded down to what you can actually load.
+- 🏋️ **Warm-ups can be planned in the routine.** Set how many an exercise gets and the session
+  starts with them already in place, ramped, instead of you adding them every time. They stay
+  out of volume, records and progression, and they travel with a shared plan.
+- ⏱️ **The rest timer skipped the last set of every exercise.** It was written as "final sets
+  finish quietly", but another exercise follows that set and you rest before it too — so a
+  two-set exercise timed one rest instead of two. It now rests after every completed set except
+  the last one of the session. (issue #3, and zkssyth arrived at the same rule independently)
+- 📝 **Notes you can write during a workout**, in three kinds, because they have three different
+  lifetimes: what happened today, on the exercise; what is always true about the movement (seat
+  height, pin position); and how the session went as a whole. The per-session note carries a
+  **pin** — the app cannot know whether "shoulder twinged" is a diary line or "go narrower" is a
+  message to your next self, but you do, at the moment you write it. Pinned notes come back the
+  next time that exercise comes up.
+- 💥 **Drop-sets and rest-pause / myo-reps**, planned per exercise and extending the set row
+  itself rather than adding new sets.
+
+### Equipment, and training in more than one gym
+
+- 🎒 **Equipment profiles.** Build a "Home" and a "Gym" list of what you actually own, and the
+  library, the exercise picker and your routines filter to it — with a warning on any routine
+  exercise that needs something the active profile does not have. Body-weight exercises are
+  always available.
+
+### Brazilian Portuguese
+
+- 🇧🇷 **pt-BR is complete**: the interface, every built-in exercise name, and every instruction
+  step. It is defined as a layer over pt-PT rather than a copy, so a string added to Portuguese
+  can never silently go missing here — with tests that fingerprint every inherited entry and
+  refuse European vocabulary (*ficheiro*, *telemóvel*, *ecrã*, «guillemets»).
+- 🔔 Server-sent notifications — rest-timer alerts, test pushes, workout-day reminders — follow
+  the profile's language instead of always arriving in English.
+
+### Fixes
+
+- ✅ **Home kept asking you to do the workout you had just done.** The week strip knew the day was
+  finished; the row underneath did not, and went on showing the routine behind a green Start tag.
+  (issue #4)
+- 📈 **"Exercise progress" was empty for bodyweight exercises.** Pull-ups and push-ups carry no
+  weight, and every point without one was dropped, so a full history read as "No data yet". When
+  nothing in an exercise's history was ever loaded, the reps are the progress — so that is what
+  is plotted now. Add a weighted set later and it switches back to weight. (issue #5)
+- 🫥 **The tab bar was see-through.** At 72% opacity the page read straight through it and the
+  labels competed with whatever was scrolling behind them — nobody needs to read the content
+  under a navigation bar. It is 94% now in both themes, and blurs less, which is also faster on
+  Android, where a blur behind a fixed element is recomposited on every scroll frame. Where
+  `backdrop-filter` is unavailable at all — old Android WebViews, "reduce transparency" — the
+  blurred surfaces now go fully opaque instead of leaving just the alpha, which was the worst of
+  both. (reported by mflova, seconded by seals187)
+- 📥 **No Smith-machine exercise could ever match on import.** The `machine → lever` rule ran
+  before `smith machine → smith`, so the generic one ate the word first. Hevy's vocabulary is
+  now mapped as well, and exercises it cannot match take their body part from the name instead of
+  defaulting to "upper legs" — which had been attributing a third of an imported history to the
+  legs. (diagnosed by rubik_97, fixed by koyosan)
+- 🗓️ **Charts show the calendar year** when the data spans more than one, so a point from
+  November 2025 is not confused with February 2026. (mflova)
+- 🔤 **Exercise search matches whole words in any order**, ignores accents, and searches the
+  translated names too — "bench barbell" finds the barbell bench press, "elevacao" finds
+  "elevação". The haystack is now built once per exercise instead of on every keystroke.
+- 🔑 **Passkeys work in Chrome on iOS**, which was excluded by a user-agent test rather than by
+  asking the browser what it supports.
+- 📱 The reps field in a superset is no longer squeezed on narrow phones, and secondary muscles
+  are visible while building a plan, not only in the Exercises tab.
+
+### Self-hosting
+
+- 🔐 **Security hardening on the API and the proxy**: SSRF and an unbounded handler in push
+  delivery, CSRF from a sibling subdomain, session-cookie shadowing, and non-forgeable proxy
+  headers. Details in SECURITY.md.
+- 🧭 **When a passkey fails, the error now says what is misconfigured.** "Unexpected RP ID hash"
+  told you nothing about your own `.env`; it now names the `RP_ID` and `ORIGIN` the server is
+  actually running with. `docs/SELF_HOSTING.md` gained a section that works through the usual
+  causes in order — including that `docker compose restart` does not re-read `.env`, and that on
+  a LAN without certificates there is nothing you can configure to make passkeys work.
+- 📲 **"Connect to my server"** pairs the standalone mobile app to a self-hosted instance with a
+  one-time code, no passkey ceremony needed inside the app's WebView.
+- 💾 **Optional local auto-backup** on the mobile app after finishing a workout or editing a
+  routine, and a **System** theme option that follows the OS.
+
+With thanks to mzspicoli, Josevi, andi242, Space_Hermes, Horus Gonzalez, wagenheimer, koyosan,
+mflova and Aaron Sachs — and to everyone who reported one of the bugs above.
 
 ## v1.2.9 — 2026-08-23
 
@@ -128,7 +283,19 @@ animations are © Gym visual, not CC, which matters if you redistribute them.
   openGym or anywhere else, commercially or not — needs your own licence from Gym visual. See
   [NOTICE.md](NOTICE.md).
 
+### Features
+
+- 🇧🇷 **Brazilian Portuguese UI** — Portuguese now has separate Portugal and
+  Brazil options, with Brazilian terminology, date formatting and localized
+  instructions for all 1,324 exercises. Built-in exercise titles show the
+  Brazilian Portuguese name followed by the canonical English name, so both
+  vocabularies remain recognizable and searchable.
+
 ### Fixes
+
+- 🔔 **Server-generated notifications follow Brazilian Portuguese** — rest-timer
+  alerts, test notifications and workout-day reminders now use the profile's
+  `pt-BR` language instead of always arriving in English.
 
 - ⬅️ **The back gesture no longer quits the app** (Android). The packaged app never listened for
   the system back event at all — Capacitor leaves that to `@capacitor/app`, which was not
