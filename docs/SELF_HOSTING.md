@@ -42,6 +42,21 @@ passkey prompt won't appear. To use openGym from your phone you need a real HTTP
 
 (You can still open it over LAN in **guest mode**, which stores data only in that browser.)
 
+The standalone mobile app (`docs/MOBILE.md`) sidesteps this entirely for its "connect to my
+server" mode: instead of a passkey ceremony (impossible from inside its WebView, which never
+runs at your real hostname), it pairs by redeeming a short one-time code — minted from
+Settings → "Pair the mobile app" in an already signed-in browser tab — for a bearer token
+sent as an `Authorization` header rather than a cookie. Two consequences worth knowing if
+you're poking at the API directly:
+
+- `POST /api/pair/create` (needs a session) and `POST /api/pair/redeem` (doesn't) implement
+  this — see `api/server.js`. The returned token is the exact same signed value a cookie
+  carries, so "sign out everywhere" invalidates it too.
+- The server reflects `Access-Control-Allow-Origin` for any request that sends an `Origin`
+  header, so the app's own WebView origin can call the API cross-origin. It never sends
+  `Access-Control-Allow-Credentials`, so this doesn't let a browser read your cookie session
+  from another origin — only bearer-token requests benefit from it.
+
 ## 3. Expose it over HTTPS on your own domain
 
 Put openGym behind something that terminates TLS for a hostname you control, then point it at
@@ -217,12 +232,59 @@ docker compose up -d --build
 The app shell is versioned (`?v=N`) so clients pick up changes on next load. Your `./data` and the
 downloaded media are untouched.
 
+## Passkeys fail even though `RP_ID` looks right
+
+The most common support question, and the values are usually *nearly* correct. Work through
+these in order — the first two account for most of it.
+
+**1. Ask the server what it actually loaded.** It prints both values on startup:
+
+```
+docker compose logs api | grep 'gym-api on'
+# gym-api on :3000 (rpID=gym.example.com, origin=https://gym.example.com)
+```
+
+If that disagrees with your `.env`, the container is still running the old environment.
+`docker compose restart` does **not** re-read `.env` — use `docker compose up -d`.
+
+**2. Check the exact shape of each value.** They are not the same kind of string:
+
+| | Correct | Wrong |
+|---|---|---|
+| `RP_ID` | `gym.example.com` | `https://gym.example.com`, `gym.example.com:8080`, `gym.example.com/` |
+| `ORIGIN` | `https://gym.example.com` | `gym.example.com`, `https://gym.example.com/` |
+
+`RP_ID` is a bare hostname: no scheme, no port, no trailing slash. `ORIGIN` is the full origin
+*with* the scheme and *without* a trailing slash. Both must match your address bar exactly.
+
+**3. Behind a tunnel or reverse proxy, use the public hostname.** With Cloudflare Tunnel,
+Traefik, nginx or Caddy in front, the browser only ever sees the public name — so that is what
+both values must be. Not the container name, not the LAN IP, not the internal port:
+
+```env
+RP_ID=gym.example.com
+ORIGIN=https://gym.example.com
+```
+
+The tunnel's own route may point wherever it likes (`http://localhost:8080` is fine). It is the
+browser-facing name that has to appear here.
+
+**4. `www.` is a different host.** A passkey registered on `gym.example.com` will not work on
+`www.gym.example.com`. Pick one and redirect the other.
+
+**5. Changing the hostname invalidates existing passkeys.** They were bound to the old one, so
+everybody registers again — which is why it pays to settle the domain before others join.
+
+> On a LAN without certificates there is nothing to configure that makes passkeys work over
+> plain `http://192.168.x.x`: browsers only allow WebAuthn on HTTPS (or `localhost`). Use guest
+> mode, the standalone mobile app (`docs/MOBILE.md`), or put a certificate in front of it.
+
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
 | No passkey prompt on my phone | You're on `http://` or an IP, not HTTPS. Set up a domain (section 3). |
-| "verification failed" on login | `RP_ID`/`ORIGIN` don't match the URL in the address bar. Make them exact, restart. |
+| "verification failed" on login | `RP_ID`/`ORIGIN` don't match the URL in the address bar. See the section above — start with what the server logged on startup. |
 | Media didn't download | `docker compose logs media`. Re-run `docker compose up -d`, or run `./scripts/fetch-media.sh`. |
 | Port 8080 already used | Set `WEB_PORT=9090` in `.env` (and update `ORIGIN` for local testing). |
 | No "Notifications" option in Settings | Requires a signed-in profile and HTTPS (or `localhost`) — guest mode and plain HTTP over LAN can't subscribe. |

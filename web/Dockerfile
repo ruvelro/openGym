@@ -45,6 +45,11 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # the header of web/nginx.conf.template. Compose overrides it from BACKEND/PORT in .env.
 ENV NGINX_PORT=80
 ENV API_UPSTREAM=api:3000
+# Empty = the CF-Connecting-IP header is dropped before it reaches the API, so it cannot be
+# forged by a direct client. Set to $http_cf_connecting_ip only when Cloudflare is really in
+# front. Defined here too, not just in compose, so the template always renders for anyone
+# running the prebuilt image from their own compose file.
+ENV CF_CONNECTING_IP=""
 
 # Probe the port nginx was actually told to listen on (NGINX_PORT is configurable, so a
 # hardcoded http://localhost/ breaks on any instance that changed it), and address it as
