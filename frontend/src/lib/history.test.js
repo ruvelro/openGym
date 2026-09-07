@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { modeOf, isTimed, fmtSec, setLabel, defaultConfig, buildSets, freestyleConfig, exLine, workoutVolume, bestWeightFor, bestWeightForEntry, effortOf, stepEffort, capEffort, isBw, isPerSide, sideReps, repStep, cascadeWeight, insertWarmupRow, removeRowAt, workSetsDone, pairAdjacent, unpairSuperset, supersetUnits, applyIntensifierPlan, pinnedNoteFor, exNoteFor } from './history.js'
+import { nextTrainingDay, modeOf, isTimed, fmtSec, setLabel, defaultConfig, buildSets, freestyleConfig, exLine, workoutVolume, bestWeightFor, bestWeightForEntry, effortOf, stepEffort, capEffort, isBw, isPerSide, sideReps, repStep, cascadeWeight, insertWarmupRow, removeRowAt, workSetsDone, pairAdjacent, unpairSuperset, supersetUnits, applyIntensifierPlan, pinnedNoteFor, exNoteFor } from './history.js'
 import { EXDB } from './exercises.js'
 
 // Real ids out of the shipped catalogue, so the body-part fallback is exercised for real.
@@ -493,6 +493,80 @@ describe('buildSets', () => {
       .toEqual([{ w: 60, r: 10, done: false }, { w: 62.5, r: 8, done: false }])
   })
 
+  it('can use a deload target without carrying regular-session values into it', () => {
+    const S = { exWeights: { [LIFT]: { w: 75 } }, workouts: [{ d: '2026-01-01', entries: [{ id: LIFT, sets: [
+      { w: 75, r: 10, done: true }, { w: 75, r: 9, done: true }
+    ] }] }] }
+    expect(buildSets(S, { id: LIFT, sets: 2, reps: 12, weight: 40 }, { useTarget: true }))
+      .toEqual([{ w: 40, r: 12, done: false }, { w: 40, r: 12, done: false }])
+  })
+
+  it('uses the current routine target instead of another routine\'s bodyweight history', () => {
+    const S = {
+      exWeights: {},
+      workouts: [{
+        d: '2026-01-01',
+        routineId: 'routine-a',
+        entries: [{
+          id: BW,
+          target: { sets: 2, reps: 15, weight: 0, bodyweight: true },
+          sets: [{ w: 0, r: 15, done: true }, { w: 0, r: 15, done: true }]
+        }]
+      }]
+    }
+    const cfg = { id: BW, sets: 4, reps: 8, weight: 0, bodyweight: true, prog: 'off' }
+
+    expect(buildSets(S, cfg, { useTarget: true })).toEqual([
+      { w: 0, r: 8, done: false },
+      { w: 0, r: 8, done: false },
+      { w: 0, r: 8, done: false },
+      { w: 0, r: 8, done: false }
+    ])
+
+    const reverseS = {
+      exWeights: {},
+      workouts: [{
+        d: '2026-01-02',
+        routineId: 'routine-b',
+        entries: [{
+          id: BW,
+          target: { sets: 4, reps: 8, weight: 0, bodyweight: true },
+          sets: [
+            { w: 0, r: 8, done: true }, { w: 0, r: 8, done: true },
+            { w: 0, r: 8, done: true }, { w: 0, r: 8, done: true }
+          ]
+        }]
+      }]
+    }
+    expect(buildSets(reverseS, { ...cfg, sets: 2, reps: 15 }, { useTarget: true })).toEqual([
+      { w: 0, r: 15, done: false },
+      { w: 0, r: 15, done: false }
+    ])
+  })
+
+  it('preserves configured load, reps, duration and cardio targets when history is present', () => {
+    const repsS = {
+      exWeights: { [LIFT]: { w: 75 } },
+      workouts: [{ d: '2026-01-01', entries: [{ id: LIFT, sets: [{ w: 75, r: 15, done: true }] }] }]
+    }
+    expect(buildSets(repsS, { id: LIFT, sets: 2, reps: 8, weight: 40 }, { useTarget: true }))
+      .toEqual([{ w: 40, r: 8, done: false }, { w: 40, r: 8, done: false }])
+
+    const timedS = {
+      exWeights: {},
+      workouts: [{ d: '2026-01-02', entries: [{ id: LIFT, target: { mode: 'time' }, sets: [{ sec: 90, w: 20, done: true }] }] }]
+    }
+    expect(buildSets(timedS, { id: LIFT, mode: 'time', sets: 2, sec: 30, weight: 5 }, { useTarget: true }))
+      .toEqual([{ sec: 30, w: 5, done: false }, { sec: 30, w: 5, done: false }])
+
+    const cardioS = {
+      exWeights: {},
+      workouts: [{ d: '2026-01-03', entries: [{ id: CARDIO, sets: [{ min: 45, speed: 10, done: true }] }] }]
+    }
+    expect(buildSets(cardioS, { id: CARDIO, sets: 2, min: 20, speed: 8 }, { useTarget: true }))
+      .toEqual([{ min: 20, speed: 8, done: false }, { min: 20, speed: 8, done: false }])
+  })
+
 })
 
 describe('applyIntensifierPlan', () => {
@@ -814,6 +888,56 @@ describe('warm-up rows identified by phase alone', () => {
   })
 })
 
+describe('nextTrainingDay', () => {
+  // 2026-08-18 is a Tuesday; the week map is keyed by getDay(), so 0 is Sunday.
+  const TUE = '2026-08-18'
+  const base = (over = {}) => ({
+    dayPlan: {},
+    routines: [{ id: 'r1', name: 'A', ex: [{ id: '0001' }] }, { id: 'r2', name: 'B', ex: [{ id: '0002' }] }],
+    week: {},
+    ...over
+  })
+
+  it('finds the next scheduled day and names its routine', () => {
+    const S = base({ week: { 4: 'r2' } })                 // Thursday
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-20', weekday: 4 })
+    expect(nextTrainingDay(S, TUE).routine.name).toBe('B')
+  })
+
+  it('looks forward only — today itself is never the answer', () => {
+    // Only Tuesday is scheduled and today is Tuesday, so the next one is a week out. (The UI
+    // cannot reach this: a day with a session takes the other branch and never asks.)
+    const S = base({ week: { 2: 'r1' } })
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-25', weekday: 2 })
+  })
+
+  it('wraps around the end of the week', () => {
+    const S = base({ week: { 1: 'r1' } })                 // Monday, six days on
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-24', weekday: 1 })
+  })
+
+  it('is null when every day is rest', () => {
+    expect(nextTrainingDay(base(), TUE)).toBeNull()
+  })
+
+  it('skips a day whose routine no longer exists', () => {
+    const S = base({ week: { 3: 'gone', 5: 'r1' } })
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-21', weekday: 5 })
+  })
+
+  it('skips a routine with no exercises — starting it would open an empty session', () => {
+    const S = base({ routines: [{ id: 'r1', name: 'A', ex: [] }, { id: 'r2', name: 'B', ex: [{ id: '1' }] }], week: { 3: 'r1', 5: 'r2' } })
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ weekday: 5 })
+  })
+
+  it('respects a per-date override in both directions', () => {
+    const moved = base({ week: {}, dayPlan: { '2026-08-19': 'r1' } })
+    expect(nextTrainingDay(moved, TUE)).toMatchObject({ iso: '2026-08-19' })
+    const off = base({ week: { 3: 'r1', 5: 'r2' }, dayPlan: { '2026-08-19': 'rest' } })
+    expect(nextTrainingDay(off, TUE)).toMatchObject({ weekday: 5 })
+  })
+})
+
 describe('pinnedNoteFor', () => {
   const S = {
     workouts: [
@@ -843,5 +967,55 @@ describe('exNoteFor', () => {
     expect(exNoteFor({ exNotes: { '0025': ' seat 4, pin 7 ' } }, '0025')).toBe('seat 4, pin 7')
     expect(exNoteFor({ exNotes: { '0025': '   ' } }, '0025')).toBeNull()
     expect(exNoteFor({}, '0025')).toBeNull()
+  })
+})
+
+describe('nextTrainingDay', () => {
+  // 2026-08-18 is a Tuesday; the week map is keyed by getDay(), so 0 is Sunday.
+  const TUE = '2026-08-18'
+  const base = (over = {}) => ({
+    dayPlan: {},
+    routines: [{ id: 'r1', name: 'A', ex: [{ id: '0001' }] }, { id: 'r2', name: 'B', ex: [{ id: '0002' }] }],
+    week: {},
+    ...over
+  })
+
+  it('finds the next scheduled day and names its routine', () => {
+    const S = base({ week: { 4: 'r2' } })                 // Thursday
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-20', weekday: 4 })
+    expect(nextTrainingDay(S, TUE).routine.name).toBe('B')
+  })
+
+  it('looks forward only — today itself is never the answer', () => {
+    // Only Tuesday is scheduled and today is Tuesday, so the next one is a week out. (The UI
+    // cannot reach this: a day with a session takes the other branch and never asks.)
+    const S = base({ week: { 2: 'r1' } })
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-25', weekday: 2 })
+  })
+
+  it('wraps around the end of the week', () => {
+    const S = base({ week: { 1: 'r1' } })                 // Monday, six days on
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-24', weekday: 1 })
+  })
+
+  it('is null when every day is rest', () => {
+    expect(nextTrainingDay(base(), TUE)).toBeNull()
+  })
+
+  it('skips a day whose routine no longer exists', () => {
+    const S = base({ week: { 3: 'gone', 5: 'r1' } })
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ iso: '2026-08-21', weekday: 5 })
+  })
+
+  it('skips a routine with no exercises — starting it would open an empty session', () => {
+    const S = base({ routines: [{ id: 'r1', name: 'A', ex: [] }, { id: 'r2', name: 'B', ex: [{ id: '1' }] }], week: { 3: 'r1', 5: 'r2' } })
+    expect(nextTrainingDay(S, TUE)).toMatchObject({ weekday: 5 })
+  })
+
+  it('respects a per-date override in both directions', () => {
+    const moved = base({ week: {}, dayPlan: { '2026-08-19': 'r1' } })
+    expect(nextTrainingDay(moved, TUE)).toMatchObject({ iso: '2026-08-19' })
+    const off = base({ week: { 3: 'r1', 5: 'r2' }, dayPlan: { '2026-08-19': 'rest' } })
+    expect(nextTrainingDay(off, TUE)).toMatchObject({ weekday: 5 })
   })
 })
