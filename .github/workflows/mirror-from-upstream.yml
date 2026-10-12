@@ -1,0 +1,132 @@
+name: Mirror upstream
+
+# This repository is a mirror of the openGym project by Duarte Santos, developed at
+# https://github.com/DuarteSantos8/openGym. (Its GitLab copy is that project's own
+# mirror, kept because GitLab CI builds the release artefacts; upstream pushes to it
+# from GitHub, so GitHub is the source to follow.) Nothing is developed here: every
+# Monday this job replaces `main` with upstream's current `main` and puts this one
+# file back on top. `main` is force-pushed — never commit here, send changes upstream
+# as a pull request. If upstream moves host again, UPSTREAM_URL is the only line to change.
+#
+# Two GitHub rules this file exists to work around:
+#
+#   1. GITHUB_TOKEN may not create or update anything under .github/workflows/, and no
+#      `permissions:` key grants it — the restriction stops a workflow rewriting itself
+#      into more privilege. A sync that carried an upstream workflow change was therefore
+#      rejected outright ("refusing to allow a GitHub App to create or update workflow
+#      ... without `workflows` permission"), which is how the 2026-09-14 run failed and
+#      why nothing had synced that week. So this job FREEZES that one directory: after the
+#      reset it puts back the workflow files this repository already had, and logs a
+#      warning when upstream's have moved on. Everything else is upstream's, byte for byte.
+#      To mirror the workflows as well, the push needs a token with "Workflows: write" on
+#      this repository instead of GITHUB_TOKEN; catching them up by hand is a normal push
+#      from an account, which carries that scope already.
+#   2. A push made with GITHUB_TOKEN raises no workflow events, so the demo build and the
+#      test suite are dispatched explicitly at the end of this job.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write          # dispatching the demo build and the tests after a push
+
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_URL: https://github.com/DuarteSantos8/openGym.git
+  SELF: .github/workflows/mirror-from-upstream.yml
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare with upstream
+        id: check
+        run: |
+          set -x
+          # One cheap network call to learn where upstream is; the full fetch happens
+          # only when there is something to fetch.
+          NEW=$(git ls-remote "$UPSTREAM_URL" refs/heads/main | cut -f1)
+          if [ -z "$NEW" ]; then
+            echo "::error::could not read refs/heads/main from $UPSTREAM_URL"
+            exit 1
+          fi
+          # HEAD is always "upstream's HEAD + this file", so HEAD^ is the upstream
+          # commit this mirror currently carries. No state file needed.
+          HAVE=$(git rev-parse HEAD^ 2>/dev/null || echo none)
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" = "$HAVE" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Already mirroring ${NEW:0:7}."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Upstream is at ${NEW:0:7}, mirror carries ${HAVE:0:7}."
+          fi
+
+      - name: Replace main with upstream
+        if: steps.check.outputs.changed == 'true'
+        env:
+          NEW: ${{ steps.check.outputs.new }}
+        run: |
+          set -x
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          PREV=$(git rev-parse HEAD)
+          git remote add upstream "$UPSTREAM_URL"
+          # --force --prune-tags: upstream's tags win outright. Without it a tag name that
+          # exists on both sides pointing at different commits aborts the whole fetch
+          # ("would clobber existing tag") and the mirror silently stops updating — which is
+          # exactly what the fork's own v1.2.5/v1.2.9 tags did the first time this ran.
+          git fetch --tags --force --prune --prune-tags upstream
+          git reset --hard upstream/main
+          # The frozen directory (see the header). Upstream's version is reported, then
+          # this repository's is put back, so the push carries no workflow change at all.
+          # PREV^, not PREV: PREV is this repository's mirror commit, which carries this very
+          # file on top of upstream's tree, so comparing it against upstream always differed and
+          # the warning fired on every single sync. PREV^ is the upstream commit the mirror was
+          # carrying, so this compares upstream against upstream — which is the actual question.
+          if ! git diff --quiet "$PREV^" HEAD -- .github/workflows; then
+            echo "::warning::upstream changed .github/workflows — kept this repository's copies; catch them up by hand if the demo or the tests need it"
+            git --no-pager diff --stat "$PREV^" HEAD -- .github/workflows
+          fi
+          rm -rf .github/workflows
+          git checkout "$PREV" -- .github/workflows
+          git add -A .github/workflows
+          git commit -m "Mirror of github.com/DuarteSantos8/openGym at ${NEW:0:7}" \
+                     -m "This repository is a read-only mirror; development happens upstream. The only commit that is not upstream's is this one, which carries .github/workflows/mirror-from-upstream.yml. See that file."
+          git push --force origin HEAD:main
+          # Tags follow the code, so the mirror shows upstream's releases too.
+          git push --force --tags origin
+
+      - name: Rebuild the demo and run the tests
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A push made with GITHUB_TOKEN raises no workflow events, so neither of these
+          # would fire on its own. Non-fatal: upstream owns both files and may rename them.
+          #
+          # Retried because the force-push lands a moment earlier: GitHub is still
+          # re-indexing the workflows at the new HEAD and answers the first dispatch with
+          # an error, which is what swallowed both of them on 2026-09-17.
+          # --repo is not optional: this job adds an `upstream` remote, and since upstream moved
+          # back to github.com gh resolved THAT as its default repository and aimed every dispatch
+          # at the author's repo, where it was rejected with 403. That is why nothing was rebuilt
+          # on 2026-09-17 and 2026-09-21.
+          for wf in pages.yml test.yml; do
+            ok=""
+            for attempt in 1 2 3; do
+              if gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref main; then ok=1; break; fi
+              sleep 20
+            done
+            [ -n "$ok" ] || echo "::warning::could not dispatch $wf — run it by hand if you want it"
+          done
